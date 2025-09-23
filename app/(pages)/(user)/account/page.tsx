@@ -1,5 +1,6 @@
 "use client";
 
+import { toaster } from "@/components/ui/toaster";
 import { formatDate } from "@/utils/converte-date";
 import {
   Box,
@@ -11,11 +12,14 @@ import {
   Tabs,
   Text,
 } from "@chakra-ui/react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { FaEdit } from "react-icons/fa";
 import { FaRegCopy } from "react-icons/fa6";
 import { HiUpload } from "react-icons/hi";
 import { MdOutlineManageAccounts, MdOutlinePassword } from "react-icons/md";
+import z from "zod";
 
 interface IProfile {
   id: string;
@@ -30,8 +34,28 @@ interface IProfile {
   type: string;
 }
 
+const schema = z.object({
+  email: z.email("E-mail inválido."),
+  name: z.string().min(1, "Nome é obrigatório."),
+});
+
+type FormData = z.infer<typeof schema>;
+
 export default function Page() {
   const [profile, setProfile] = useState<IProfile | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setValue,
+  } = useForm<FormData>({
+    defaultValues: {
+      email: profile?.email || "",
+      name: profile?.name || "",
+    },
+    resolver: zodResolver(schema),
+  });
 
   useEffect(() => {
     async function fetchProfile() {
@@ -42,6 +66,8 @@ export default function Page() {
           try {
             const parsed = typeof data === "string" ? JSON.parse(data) : data;
             setProfile(parsed);
+            setValue("email", parsed.email);
+            setValue("name", parsed.name);
           } catch {
             setProfile(null);
           }
@@ -54,6 +80,48 @@ export default function Page() {
     }
     fetchProfile();
   }, []);
+
+  const onSubmit = async (data: FormData) => {
+    const token = await fetch("/api/get-cookies?key=access_token");
+    console.log("token", token);
+
+    const promise = new Promise((resolve, reject) => {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}users/update/self`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) {
+            return res.json().then((err) => {
+              reject(err.message[0] || "Erro desconhecido");
+            });
+          }
+          resolve(res.json());
+        })
+        .catch((err) => {
+          reject(err.message || "Erro desconhecido");
+        });
+    });
+
+    toaster.promise(promise, {
+      loading: {
+        title: "Atualizando...",
+        description: "Por favor aguarde",
+      },
+      success: {
+        title: "Atualização efetuada!",
+        description: "Seja bem-vindo de volta!",
+      },
+      error: (err) => ({
+        title: "Erro ao atualizar",
+        description: err || "Erro desconhecido.",
+      }),
+    });
+  };
 
   return (
     <Box px={8}>
@@ -113,15 +181,21 @@ export default function Page() {
 
                 <Box display={"flex"} flexDir={"row"} gap={4}>
                   <InputGroup startAddon="Nome">
-                    <Input value={profile?.name} onChange={() => {}} />
+                    <Input {...register("name")} onChange={() => {}} />
                   </InputGroup>
 
                   <InputGroup startAddon="E-mail">
-                    <Input value={profile?.email} onChange={() => {}} />
+                    <Input {...register("email")} onChange={() => {}} />
                   </InputGroup>
                 </Box>
 
-                <Button alignSelf={"end"} w="160px" display={"flex"} gap={2}>
+                <Button
+                  onClick={handleSubmit(onSubmit)}
+                  alignSelf={"end"}
+                  w="160px"
+                  display={"flex"}
+                  gap={2}
+                >
                   <FaEdit />
                   <Text w="100%">Salvar alterações</Text>
                 </Button>
