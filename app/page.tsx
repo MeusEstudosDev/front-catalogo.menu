@@ -75,7 +75,10 @@ export default function Page() {
       }),
     });
 
-    const response = (await promise) as { access_token: string };
+    const response = (await promise) as {
+      access_token: string;
+      refresh_token: string;
+    };
 
     await fetch("/api/set-cookies", {
       method: "POST",
@@ -83,6 +86,27 @@ export default function Page() {
       body: JSON.stringify({
         value: response.access_token,
         key: "access_token",
+      }),
+      headers: { "Content-Type": "application/json" },
+    })
+      .then(() => {
+        console.log("Cookie setado");
+        router.replace("/dashboard");
+      })
+      .catch((err) => {
+        console.error("Erro ao setar cookie", err);
+        toaster.error({
+          title: "Erro ao autenticar",
+          description: "Não foi possível salvar o cookie de autenticação.",
+        });
+      });
+
+    await fetch("/api/set-cookies", {
+      method: "POST",
+      credentials: "include",
+      body: JSON.stringify({
+        value: response.refresh_token,
+        key: "refresh_token",
       }),
       headers: { "Content-Type": "application/json" },
     })

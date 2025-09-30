@@ -16,6 +16,9 @@ const MainMenu: React.FC = () => {
     await fetch("/api/delete-cookies?key=access_token", {
       method: "DELETE",
     });
+    await fetch("/api/delete-cookies?key=refresh_token", {
+      method: "DELETE",
+    });
     router.refresh();
   };
 
@@ -23,6 +26,7 @@ const MainMenu: React.FC = () => {
     name?: string;
     profile_uri?: string;
   } | null>(null);
+  const [imageBust, setImageBust] = useState<number>(Date.now());
 
   useEffect(() => {
     async function fetchProfile() {
@@ -44,7 +48,32 @@ const MainMenu: React.FC = () => {
       }
     }
     fetchProfile();
+
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      const newUri = custom.detail;
+      if (typeof newUri === "string") {
+        setProfile((prev) => (prev ? { ...prev, profile_uri: newUri } : prev));
+        setImageBust(Date.now());
+      } else {
+        setImageBust(Date.now());
+      }
+    };
+    window.addEventListener(
+      "profile-picture-updated",
+      handler as EventListener
+    );
+    return () =>
+      window.removeEventListener(
+        "profile-picture-updated",
+        handler as EventListener
+      );
   }, []);
+
+  const withCacheBust = (url?: string, bust?: number) =>
+    url
+      ? `${url}${url.includes("?") ? "&" : "?"}cb=${bust ?? Date.now()}`
+      : undefined;
 
   return (
     <>
@@ -77,7 +106,9 @@ const MainMenu: React.FC = () => {
               style={{ cursor: "pointer" }}
             >
               <Avatar.Fallback name={profile?.name || "Usuário"} />
-              <Avatar.Image src={profile?.profile_uri || undefined} />
+              <Avatar.Image
+                src={withCacheBust(profile?.profile_uri, imageBust)}
+              />
             </Avatar.Root>
           </Menu.Trigger>
           <Portal>
@@ -86,7 +117,9 @@ const MainMenu: React.FC = () => {
                 <Menu.Item value="profile">
                   <Avatar.Root variant="subtle" size="xs">
                     <Avatar.Fallback name={profile?.name || "Usuário"} />
-                    <Avatar.Image src={profile?.profile_uri || undefined} />
+                    <Avatar.Image
+                      src={withCacheBust(profile?.profile_uri, imageBust)}
+                    />
                   </Avatar.Root>
                   {profile?.name}
                 </Menu.Item>
