@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "UAI-Food",
+  title: "catalogo.menu",
   description: "Sistema de pedidos.",
 };
 

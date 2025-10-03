@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar, Box, Breadcrumb, Flex, Menu, Portal } from "@chakra-ui/react";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import React, { Fragment, useEffect, useState } from "react";
 import { LuLogOut, LuSettings, LuUser } from "react-icons/lu";
@@ -91,10 +92,13 @@ const MainMenu: React.FC = () => {
         alignItems={"center"}
       >
         <Flex as="ul" gap={8} listStyleType="none" m={0} p={0} justify="center">
-          <Box as="li">
-            <LinkMainMenu href="/dashboard" pathname={pathname}>
-              Dashboard
-            </LinkMainMenu>
+          <Box as="li" display="flex" alignItems="center" gap={2}>
+            <Image
+              src="/favicon.png"
+              alt="catalogo.menu"
+              width={40}
+              height={40}
+            />
           </Box>
         </Flex>
 
@@ -126,15 +130,14 @@ const MainMenu: React.FC = () => {
 
                 <Menu.Separator />
 
-                <Menu.Item value="account" style={{ cursor: "pointer" }}>
+                <Menu.Item
+                  onClick={() => router.replace("/account")}
+                  style={{ cursor: "pointer" }}
+                  value="account"
+                >
                   <Flex align="center" gap={2}>
                     <LuUser />
-                    <button
-                      onClick={() => router.replace("/account")}
-                      style={{ cursor: "pointer" }}
-                    >
-                      Minha conta
-                    </button>
+                    Minha conta
                   </Flex>
                 </Menu.Item>
 
