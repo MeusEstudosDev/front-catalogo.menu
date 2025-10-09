@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import React, { Fragment, useEffect, useState } from "react";
 import { LuLogOut, LuSettings, LuUser } from "react-icons/lu";
+import { SiAwssecretsmanager } from 'react-icons/si';
 
 const MainMenu: React.FC = () => {
   const router = useRouter();
@@ -26,6 +27,7 @@ const MainMenu: React.FC = () => {
   const [profile, setProfile] = useState<{
     name?: string;
     profile_uri?: string;
+    type?: "MANAGEMENT" | "MARKETPLACE" | "APPLICATION";
   } | null>(null);
   const [imageBust, setImageBust] = useState<number>(Date.now());
 
@@ -130,6 +132,19 @@ const MainMenu: React.FC = () => {
 
                 <Menu.Separator />
 
+                {
+                  profile?.type === "MANAGEMENT" && (                <Menu.Item
+                    onClick={() => router.replace("/manage-system")}
+                    style={{ cursor: "pointer" }}
+                    value="manage-system"
+                  >
+                    <Flex align="center" gap={2}>
+                      <SiAwssecretsmanager />
+                      Gerenciar sistema
+                    </Flex>
+                  </Menu.Item>)
+                }
+
                 <Menu.Item
                   onClick={() => router.replace("/account")}
                   style={{ cursor: "pointer" }}
@@ -176,6 +191,9 @@ const MainMenu: React.FC = () => {
               const pathTranslated: Record<string, string> = {
                 account: "minha conta",
                 settings: "configurações",
+                "manage-system": "gerenciamento do sistema",
+                businesses: "empresas",
+                users: "usuários",
               };
 
               const value =

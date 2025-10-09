@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 const publicPaths = ["/", "/register"];
 const publicGlobalPaths = ["/privacy", "/terms", "/404"];
 const privatePaths = ["/dashboard", "/account", "/settings"];
+const managementPaths = ["/manage-system", "/manage-system/businesses", "/manage-system/users"];
 
 function decodeJwt(token: string): any | null {
   try {
@@ -138,7 +139,8 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = publicPaths.includes(pathname);
   const isPublicGlobalRoute = publicGlobalPaths.includes(pathname);
   const isPrivateRoute = privatePaths.includes(pathname);
-  const knownRoutes = [...publicPaths, ...publicGlobalPaths, ...privatePaths];
+  const isManagementRoute = managementPaths.includes(pathname);
+  const knownRoutes = [...publicPaths, ...publicGlobalPaths, ...privatePaths, ...managementPaths];
   const decodedToken = token ? decodeJwt(token.value) : null;
 
   if (!knownRoutes.includes(pathname)) {
@@ -167,6 +169,20 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isPrivateRoute) {
+    const validationResult = await tokenIsValid(
+      token?.value,
+      refreshToken?.value,
+      profile?.value,
+      request
+    );
+    if (validationResult) return validationResult;
+  }
+
+  if (isManagementRoute) {
+    if (JSON.parse(profile?.value || "{}").type !== "MANAGEMENT") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
     const validationResult = await tokenIsValid(
       token?.value,
       refreshToken?.value,
