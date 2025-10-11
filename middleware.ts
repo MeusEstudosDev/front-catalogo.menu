@@ -4,7 +4,13 @@ import { NextResponse } from "next/server";
 const publicPaths = ["/", "/register"];
 const publicGlobalPaths = ["/privacy", "/terms", "/404"];
 const privatePaths = ["/dashboard", "/account", "/settings"];
-const managementPaths = ["/manage-system", "/manage-system/businesses", "/manage-system/users"];
+const managementPaths = [
+    "/manage-system",
+    "/manage-system/businesses",
+    "/manage-system/businesses/create",
+    "/manage-system/businesses/edit",
+    "/manage-system/users",
+  ];
 
 function decodeJwt(token: string): any | null {
   try {
