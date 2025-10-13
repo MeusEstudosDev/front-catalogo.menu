@@ -35,6 +35,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
+        suppressHydrationWarning
       >
         <Provider>
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>

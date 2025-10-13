@@ -1,9 +1,15 @@
 "use client";
 
+import {
+    AddressesTab,
+    BasicInfoTab,
+    EmailsTab,
+    PhonesTab,
+} from "@/components/business-edit";
 import { Box, Container, Heading, Spinner, Tabs, Text } from "@chakra-ui/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { MdBusiness, MdInfo, MdLocationOn, MdSettings } from "react-icons/md";
+import { FaEnvelope, FaInfoCircle, FaMapMarkerAlt, FaPhone } from "react-icons/fa";
 
 function BusinessesEditPageContent() {
   const searchParams = useSearchParams();
@@ -34,58 +40,50 @@ function BusinessesEditPageContent() {
           Altere os dados da empresa conforme necessário
         </Text>
 
-        <Tabs.Root defaultValue="info" mt={8}>
+        <Tabs.Root defaultValue="info" mt={8} variant="enclosed">
           <Tabs.List>
             <Tabs.Trigger value="info">
-              <MdInfo />
+              <FaInfoCircle style={{ marginRight: "8px" }} />
               Informações Básicas
             </Tabs.Trigger>
 
-            <Tabs.Trigger value="business">
-              <MdBusiness />
-              Dados Empresariais
+            <Tabs.Trigger value="phones">
+              <FaPhone style={{ marginRight: "8px" }} />
+              Telefones
             </Tabs.Trigger>
 
-            <Tabs.Trigger value="address">
-              <MdLocationOn />
-              Endereço
+            <Tabs.Trigger value="addresses">
+              <FaMapMarkerAlt style={{ marginRight: "8px" }} />
+              Endereços
             </Tabs.Trigger>
 
-            <Tabs.Trigger value="settings">
-              <MdSettings />
-              Configurações
+            <Tabs.Trigger value="emails">
+              <FaEnvelope style={{ marginRight: "8px" }} />
+              E-mails
             </Tabs.Trigger>
           </Tabs.List>
 
           <Tabs.Content value="info">
-            <Box p={6}>
-              <Text color="gray.500">
-                Aba de Informações Básicas - Em desenvolvimento
-              </Text>
+            <Box p={6} bg="white" _dark={{ bg: "gray.800" }} borderRadius="md" shadow="sm">
+              <BasicInfoTab businessId={businessId} />
             </Box>
           </Tabs.Content>
 
-          <Tabs.Content value="business">
-            <Box p={6}>
-              <Text color="gray.500">
-                Aba de Dados Empresariais - Em desenvolvimento
-              </Text>
+          <Tabs.Content value="phones">
+            <Box p={6} bg="white" _dark={{ bg: "gray.800" }} borderRadius="md" shadow="sm">
+              <PhonesTab businessId={businessId} />
             </Box>
           </Tabs.Content>
 
-          <Tabs.Content value="address">
-            <Box p={6}>
-              <Text color="gray.500">
-                Aba de Endereço - Em desenvolvimento
-              </Text>
+          <Tabs.Content value="addresses">
+            <Box p={6} bg="white" _dark={{ bg: "gray.800" }} borderRadius="md" shadow="sm">
+              <AddressesTab businessId={businessId} />
             </Box>
           </Tabs.Content>
 
-          <Tabs.Content value="settings">
-            <Box p={6}>
-              <Text color="gray.500">
-                Aba de Configurações - Em desenvolvimento
-              </Text>
+          <Tabs.Content value="emails">
+            <Box p={6} bg="white" _dark={{ bg: "gray.800" }} borderRadius="md" shadow="sm">
+              <EmailsTab businessId={businessId} />
             </Box>
           </Tabs.Content>
         </Tabs.Root>

@@ -42,8 +42,8 @@ function BusinessesPageContent() {
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [code, setCode] = useState(searchParams.get("code") || "");
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "");
-  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
-  const [size, setSize] = useState(Number(searchParams.get("size")) || 10);
+  const [pageNumber, setPageNumber] = useState(Number(searchParams.get("page_number")) || 1);
+  const [pageSize, setPageSize] = useState(Number(searchParams.get("page_size")) || 10);
   const [sort, setsort] = useState(searchParams.get("sort") || "created_at");
   const [order_by, setOrder] = useState<"asc" | "desc">(
     (searchParams.get("order_by") as "asc" | "desc") || "desc"
@@ -66,8 +66,8 @@ function BusinessesPageContent() {
       );
 
       const params: IBusinessListParams = {
-        page,
-        size,
+        page_number: pageNumber,
+        page_size: pageSize,
         sort,
         order_by,
       };
@@ -85,8 +85,8 @@ function BusinessesPageContent() {
       }
 
       const queryString = new URLSearchParams({
-        page: String(params.page),
-        size: String(params.size),
+        page_number: String(params.page_number),
+        page_size: String(params.page_size),
         sort: params.sort,
         order_by: params.order_by,
         ...(params.search && { search: params.search }),
@@ -132,8 +132,8 @@ function BusinessesPageContent() {
     if (search) params.set("search", search);
     if (code) params.set("code", code);
     if (statusFilter) params.set("status", statusFilter);
-    params.set("page", String(page));
-    params.set("size", String(size));
+    params.set("page_number", String(pageNumber));
+    params.set("page_size", String(pageSize));
     params.set("sort", sort);
     params.set("order_by", order_by);
 
@@ -145,11 +145,11 @@ function BusinessesPageContent() {
     fetchBusinesses();
     updateURL();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, size, sort, order_by]);
+  }, [pageNumber, pageSize, sort, order_by]);
 
   // Função de busca
   const handleSearch = () => {
-    setPage(1); // Resetar para primeira página
+    setPageNumber(1); // Resetar para primeira página
     fetchBusinesses();
     updateURL();
   };
@@ -358,10 +358,10 @@ function BusinessesPageContent() {
               Itens por página
             </Text>
             <select
-              value={size}
+              value={pageSize}
               onChange={(e) => {
-                setSize(Number(e.target.value));
-                setPage(1);
+                setPageSize(Number(e.target.value));
+                setPageNumber(1);
               }}
               style={{
                 width: "100%",
@@ -546,30 +546,30 @@ function BusinessesPageContent() {
         {!isLoading && businesses.length > 0 && (
           <Flex justify="space-between" align="center" mt={6} flexWrap="wrap" gap={4}>
             <Text fontSize="sm" color="gray.600">
-              Mostrando {(page - 1) * size + 1} -{" "}
-              {Math.min(page * size, total)} de {total} empresas
+              Mostrando {(pageNumber - 1) * pageSize + 1} -{" "}
+              {Math.min(pageNumber * pageSize, total)} de {total} empresas
             </Text>
             <Flex gap={2}>
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setPage(page - 1)}
-                disabled={page === 1}
+                onClick={() => setPageNumber(pageNumber - 1)}
+                disabled={pageNumber === 1}
               >
                 Anterior
               </Button>
               <Flex gap={1} align="center">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const pageNumber = i + 1;
+                  const page = i + 1;
                   return (
                     <Button
-                      key={pageNumber}
+                      key={page}
                       size="sm"
-                      variant={page === pageNumber ? "solid" : "ghost"}
-                      colorPalette={page === pageNumber ? "blue" : "gray"}
-                      onClick={() => setPage(pageNumber)}
+                      variant={pageNumber === page ? "solid" : "ghost"}
+                      colorPalette={pageNumber === page ? "blue" : "gray"}
+                      onClick={() => setPageNumber(page)}
                     >
-                      {pageNumber}
+                      {page}
                     </Button>
                   );
                 })}
@@ -578,8 +578,8 @@ function BusinessesPageContent() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setPage(page + 1)}
-                disabled={page === totalPages}
+                onClick={() => setPageNumber(pageNumber + 1)}
+                disabled={pageNumber === totalPages}
               >
                 Próxima
               </Button>

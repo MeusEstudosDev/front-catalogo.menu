@@ -21,6 +21,7 @@ Este documento serve como referência central para qualquer AI Agent que for tra
 10. [Ambiente de Desenvolvimento](#ambiente-de-desenvolvimento)
 11. [Boas Práticas](#boas-práticas)
 12. [Troubleshooting](#troubleshooting)
+13. [Módulos Implementados](#módulos-implementados)
 
 ---
 
@@ -602,124 +603,167 @@ export function Component({ prop }: ComponentProps) {
 
 ---
 
-## 📦 Adicionando Novas Funcionalidades
+## 📦 Módulos Implementados
 
-### Checklist para Novas Features
+### Business Management (Gerenciamento de Empresas)
 
-- [ ] Criar/identificar a rota apropriada em `app/`
-- [ ] Definir tipos em arquivo `types.ts` local
-- [ ] Criar componentes em `components/`
-- [ ] Adicionar validação com Zod (se formulário)
-- [ ] Atualizar middleware se necessário (autenticação)
-- [ ] Testar em diferentes temas (light/dark)
-- [ ] Verificar responsividade
-- [ ] Adicionar tratamento de erros
-- [ ] Documentar código complexo
-- [ ] Verificar acessibilidade
+#### Listagem de Empresas
+**Rota:** `/manage-system/businesses`  
+**Arquivo:** `app/(manage)/manage-system/businesses/page.tsx`  
+**Componentes:** `components/businesses/`
 
-### Exemplo: Adicionando Nova Página
+**Funcionalidades:**
+- Tabela com listagem de empresas
+- Filtros avançados: search (nome/CNPJ), code (numérico), status (enum)
+- Paginação com controle de items por página
+- Ordenação por colunas (sort + order_by)
+- Modais de alteração de status e exclusão
+- Botão para criar nova empresa
 
+**API Endpoints:**
+- GET `/businesses?page_number={n}&page_size={s}&search={q}&code={c}&status={s}&sort={field}&order_by={asc|desc}`
+
+**Query Parameters:**
+- `page_number`: Número da página (padrão: 1)
+- `page_size`: Items por página (padrão: 10)
+- `search`: Busca por nome ou CNPJ
+- `code`: Filtro por código exato
+- `status`: Filtro por status (ACTIVE, INACTIVE, SUSPENDED)
+- `sort`: Campo para ordenação
+- `order_by`: Direção (asc/desc)
+
+**Estrutura de Resposta:**
 ```typescript
-// 1. Criar arquivo: app/(pages)/nova-funcionalidade/page.tsx
-
-// 2. Adicionar rota no middleware (se privada)
-const privatePaths = [..., "/nova-funcionalidade"];
-
-// 3. Criar componentes necessários
-// components/nova-funcionalidade/NovaFuncionalidadeCard.tsx
-
-// 4. Adicionar tipos
-// components/nova-funcionalidade/types.ts
+{
+  data: IBusiness[];
+  total_items: number;
+  total_pages: number;
+  current_page: number;
+  page_size: number;
+}
 ```
 
----
+#### Edição de Empresas
+**Rota:** `/manage-system/businesses/edit?id={businessId}`  
+**Arquivo:** `app/(manage)/manage-system/businesses/edit/page.tsx`  
+**Componentes:** `components/business-edit/`
 
-## 🔧 Configurações Importantes
+**Tabs Disponíveis:**
 
-### Next.js Config
+1. **Informações Básicas** (`BasicInfoTab`)
+   - Code (readonly)
+   - Created At (readonly)
+   - Status (dropdown com badge)
+   - CNPJ (com formatação)
+   - Nome
+   - Website
 
+2. **Telefones** (`PhonesTab`)
+   - CRUD completo de telefones
+   - Tipos: PERSONAL, RESIDENTIAL, COMMERCIAL, OTHER
+   - Suporte a múltiplos DDI
+   - Validação específica para números BR
+   - Modais para criar/editar/excluir
+
+3. **Endereços** (`AddressesTab`)
+   - CRUD completo de endereços
+   - Tipos: RESIDENTIAL, COMMERCIAL, OTHER
+   - Integração com ViaCEP
+   - Visualização em Google Maps
+   - Geolocalização (latitude/longitude)
+   - Modais para criar/editar/excluir
+
+4. **E-mails** (`EmailsTab`)
+   - CRUD completo de e-mails
+   - Tipos: GENERAL, SALES, SUPPORT, BILLING, OTHER
+   - Validação de formato
+   - Indicação de verificação
+   - Modais para criar/editar/excluir
+
+**API Endpoints:**
+- GET `/businesses/{id}` - Busca dados da empresa
+- PUT `/businesses/{id}` - Atualiza informações básicas
+- GET/POST/PUT/DELETE `/businesses/{id}/phones` - Gerencia telefones
+- GET/POST/PUT/DELETE `/businesses/{id}/phones/{phoneId}` - CRUD de telefone
+- GET/POST/PUT/DELETE `/businesses/{id}/addresses` - Gerencia endereços
+- GET/POST/PUT/DELETE `/businesses/{id}/addresses/{addressId}` - CRUD de endereço
+- GET/POST/PUT/DELETE `/businesses/{id}/emails` - Gerencia e-mails
+- GET/POST/PUT/DELETE `/businesses/{id}/emails/{emailId}` - CRUD de e-mail
+
+**Interfaces TypeScript:**
 ```typescript
-// next.config.ts
-const nextConfig: NextConfig = {
-  experimental: {
-    optimizePackageImports: ["@chakra-ui/react"], // Otimização do Chakra UI
-  },
-  allowedDevOrigins: ["develop.diegogaspar.dev.br"],
-};
+interface IBusinessDetail {
+  id: string;
+  code: number;
+  created_at: Date;
+  updated_at: Date;
+  deleted_at: Date | null;
+  cnpj: string;
+  name: string;
+  website: string | null;
+  status: BusinessStatus;
+}
+
+interface IBusinessPhone {
+  id: string;
+  code: number;
+  type: "PERSONAL" | "RESIDENTIAL" | "COMMERCIAL" | "OTHER";
+  country_code: string;
+  number: string;
+  primary: boolean;
+  verified: Date | null;
+  business_id: string;
+}
+
+interface IBusinessAddress {
+  id: string;
+  code: number;
+  type: "RESIDENTIAL" | "COMMERCIAL" | "OTHER";
+  cep: string;
+  city: string;
+  state: string;
+  district: string;
+  street: string;
+  number: string;
+  complement?: string;
+  primary: boolean;
+  latitude?: number;
+  longitude?: number;
+  business_id: string;
+}
+
+interface IBusinessEmail {
+  id: string;
+  code: number;
+  type: "GENERAL" | "SALES" | "SUPPORT" | "BILLING" | "OTHER";
+  email: string;
+  is_verified: boolean;
+  primary: boolean;
+  verified_at: Date | null;
+  business_id: string;
+}
 ```
 
-### TypeScript Config
+**Padrões de UX/UI:**
+- Segue os mesmos padrões da área de conta de usuário (`components/account/`)
+- Modais para ações de criar, editar e excluir
+- Feedback visual com toasts (sucesso, erro)
+- Loading states em todas as operações assíncronas
+- Badges coloridos para status e tipos
+- Validações de formulário com mensagens claras
+- Confirmação para ações destrutivas
 
-- **Paths:** Alias `@/*` aponta para raiz do projeto
-- **Strict mode:** Ativado
-- **Module Resolution:** Bundler
+**Utilitários:**
+- `formatCNPJ()` - Formata CNPJ
+- `formatPhone()` - Formata telefone
+- `formatCEP()` - Formata CEP
+- `formatDate()` - Formata datas
+- `removeMask()` - Remove máscaras
+- `validateCNPJ()` - Valida CNPJ
+- `validateEmail()` - Valida e-mail
 
-### PostCSS
-
-- Configurado para Tailwind CSS v4
-
----
-
-## 📚 Recursos Adicionais
-
-### Documentação Oficial
-
-- [Next.js 15 Docs](https://nextjs.org/docs)
-- [React 19 Docs](https://react.dev)
-- [Chakra UI v3 Docs](https://www.chakra-ui.com/docs)
-- [Tailwind CSS v4 Docs](https://tailwindcss.com/docs)
-- [React Hook Form](https://react-hook-form.com)
-- [Zod](https://zod.dev)
-
-### Padrões de Design
-
-- Use **Compound Components** para componentes complexos
-- Aplique **Composition** over inheritance
-- Implemente **Controlled Components** para formulários
+**Documentação Detalhada:**
+- `components/businesses/README.md` - Listagem de empresas
+- `components/business-edit/README.md` - Edição de empresas
 
 ---
-
-## 🎯 Filosofia do Projeto
-
-1. **TypeScript em tudo** - Segurança de tipos é prioridade
-2. **Server-first** - Use Server Components quando possível
-3. **Performance** - Otimize desde o início
-4. **Acessibilidade** - Design inclusivo sempre
-5. **Developer Experience** - Código limpo e manutenível
-6. **Consistência** - Siga os padrões estabelecidos
-
----
-
-## ⚠️ IMPORTANTE: Leia Antes de Modificar
-
-### Antes de Fazer Alterações:
-
-1. **Leia este documento completamente**
-2. **Entenda a estrutura de rotas** (grupos de rotas)
-3. **Verifique o middleware** para autenticação
-4. **Use TypeScript** - sem exceções
-5. **Siga as convenções** de nomenclatura
-6. **Teste localmente** antes de commitar
-7. **Mantenha consistência** com código existente
-
-### Ao Criar Novos Arquivos:
-
-- Use o padrão de nomenclatura correto
-- Adicione tipos TypeScript apropriados
-- Organize imports na ordem correta
-- Adicione comentários em código complexo
-- Exporte componentes pelo `index.ts` quando aplicável
-
-### Ao Modificar Código Existente:
-
-- Entenda o contexto completo antes de mudar
-- Verifique dependências e usages
-- Mantenha backward compatibility quando possível
-- Teste cenários de erro
-- Atualize tipos se necessário
-
----
-
-**Este documento é vivo e deve ser atualizado conforme o projeto evolui.**
-
-**Última revisão:** 10 de Outubro de 2025

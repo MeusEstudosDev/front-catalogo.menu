@@ -25,14 +25,14 @@ export interface IBusinessListParams {
   search?: string;
   code?: number;
   status?: BusinessStatus;
-  page: number;
-  size: number;
+  page_number: number;
+  page_size: number;
   sort: string;
   order_by: "asc" | "desc";
 }
 
 export interface IBusinessListResponse {
-  page: number;
+  page_number: number;
   page_size: number;
   total: number;
   has_more: boolean;
