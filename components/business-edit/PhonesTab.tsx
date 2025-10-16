@@ -1,7 +1,7 @@
 "use client";
 
 import { toaster } from "@/components/ui/toaster";
-import { Box, Button, Dialog, Input, Text } from "@chakra-ui/react";
+import { Box, Button, Dialog, Input, PinInput, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { FaCheckCircle, FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import { GoAlert } from "react-icons/go";
@@ -22,6 +22,14 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
   const [editingPhone, setEditingPhone] = useState<IBusinessPhone | null>(null);
   const [phoneToDelete, setPhoneToDelete] = useState<IBusinessPhone | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Estados para verificação
+  const [isVerifyConfirmModalOpen, setIsVerifyConfirmModalOpen] = useState(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [phoneToVerify, setPhoneToVerify] = useState<IBusinessPhone | null>(null);
+  const [verificationCode, setVerificationCode] = useState<string>("");
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [isConfirmingVerification, setIsConfirmingVerification] = useState(false);
 
   const [newPhone, setNewPhone] = useState({
     type: "COMMERCIAL" as const,
@@ -228,6 +236,116 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
     }
   };
 
+  const sendVerificationCode = (phone: IBusinessPhone) => {
+    setPhoneToVerify(phone);
+    setIsVerifyConfirmModalOpen(true);
+  };
+
+  const confirmSendVerificationCode = async () => {
+    if (!phoneToVerify) return;
+
+    setIsSendingCode(true);
+
+    try {
+      const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
+        r.json()
+      );
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}management/businesses/${businessId}/phones/verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            phone_id: phoneToVerify.id,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        setIsVerifyConfirmModalOpen(false);
+        toaster.success({
+          title: "Código enviado!",
+          description: "Código de verificação foi enviado por SMS.",
+        });
+        setIsVerifyModalOpen(true);
+      } else {
+        const error = await response.json();
+        throw new Error(error.message?.[0] || "Erro ao enviar código");
+      }
+    } catch (error: any) {
+      toaster.error({
+        title: "Erro ao enviar código",
+        description:
+          error.message || "Não foi possível enviar o código de verificação.",
+      });
+      setPhoneToVerify(null);
+      setIsVerifyConfirmModalOpen(false);
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
+
+  const confirmPhoneVerification = async () => {
+    if (!phoneToVerify || !verificationCode || verificationCode.length !== 6) {
+      toaster.error({
+        title: "Código inválido",
+        description: "Digite os 6 dígitos enviados por SMS.",
+      });
+      return;
+    }
+
+    setIsConfirmingVerification(true);
+    try {
+      const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
+        r.json()
+      );
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}management/businesses/${businessId}/phones/confirm-verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            code: verificationCode,
+            phone_id: phoneToVerify.id,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        toaster.success({
+          title: "Telefone verificado!",
+          description: "O telefone foi verificado com sucesso.",
+        });
+        closeVerifyModal();
+        fetchPhones();
+      } else {
+        const error = await response.json();
+        throw new Error(error.message?.[0] || "Código inválido");
+      }
+    } catch (error: any) {
+      toaster.error({
+        title: "Erro na verificação",
+        description: error.message || "Não foi possível verificar o telefone.",
+      });
+    } finally {
+      setIsConfirmingVerification(false);
+    }
+  };
+
+  const closeVerifyModal = () => {
+    setIsVerifyModalOpen(false);
+    setPhoneToVerify(null);
+    setVerificationCode("");
+  };
+
   return (
     <Box display="flex" flexDir="column" gap={4} w="100%" px={{ base: 4, md: 0 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -339,10 +457,10 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
                       variant="outline"
                       flex="1"
                       color="orange.600"
-                      disabled
+                      onClick={() => sendVerificationCode(phone)}
                     >
                       <GoAlert />
-                      <Text fontSize="sm">Não verificado</Text>
+                      <Text fontSize="sm">Verificar</Text>
                     </Button>
                   )}
                   <Button
@@ -621,6 +739,133 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
                 loading={isSubmitting}
               >
                 Remover
+              </Button>
+            </Dialog.Footer>
+            <Dialog.CloseTrigger />
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Dialog.Root>
+
+      {/* Modal de Confirmação de Envio de Código */}
+      <Dialog.Root
+        open={isVerifyConfirmModalOpen}
+        onOpenChange={(e) => {
+          if (!e.open) {
+            setIsVerifyConfirmModalOpen(false);
+            setPhoneToVerify(null);
+          }
+        }}
+      >
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content>
+            <Dialog.Header>
+              <Dialog.Title>Confirmar Verificação</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>
+              <Box display="flex" flexDir="column" gap={4}>
+                <Text>
+                  Será enviado um código de verificação via SMS para o número:
+                </Text>
+                <Box
+                  p={3}
+                  bg="gray.50"
+                  borderRadius="md"
+                  border="1px solid"
+                  borderColor="gray.200"
+                >
+                  <Text fontWeight="bold" fontSize="lg" textAlign="center">
+                    {phoneToVerify?.country_code} {phoneToVerify && formatPhone(phoneToVerify.number)}
+                  </Text>
+                </Box>
+                <Text fontSize="sm" color="gray.600">
+                  Após receber o código, você poderá inserí-lo na próxima tela para
+                  confirmar a verificação do telefone.
+                </Text>
+              </Box>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsVerifyConfirmModalOpen(false);
+                  setPhoneToVerify(null);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                colorPalette="blue"
+                onClick={confirmSendVerificationCode}
+                loading={isSendingCode}
+              >
+                Enviar Código
+              </Button>
+            </Dialog.Footer>
+            <Dialog.CloseTrigger />
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Dialog.Root>
+
+      {/* Modal de Verificação com Código */}
+      <Dialog.Root
+        open={isVerifyModalOpen}
+        onOpenChange={(e) => {
+          if (!e.open) {
+            closeVerifyModal();
+          }
+        }}
+      >
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content>
+            <Dialog.Header>
+              <Dialog.Title>Verificar Telefone</Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>
+              <Text mb={4}>
+                Enviamos um código de 6 dígitos para o número{" "}
+                <Text as="span" fontWeight="bold">
+                  {phoneToVerify?.country_code} {phoneToVerify && formatPhone(phoneToVerify.number)}
+                </Text>
+                . Digite o código abaixo para confirmar:
+              </Text>
+              <Box>
+                <Text mb={2}>Código de verificação</Text>
+                <PinInput.Root
+                  value={verificationCode.split("")}
+                  onValueChange={(details) =>
+                    setVerificationCode(
+                      Array.isArray(details.value)
+                        ? details.value.join("")
+                        : details.value
+                    )
+                  }
+                  otp
+                  type="alphanumeric"
+                >
+                  <PinInput.HiddenInput />
+                  <PinInput.Control>
+                    <PinInput.Input index={0} />
+                    <PinInput.Input index={1} />
+                    <PinInput.Input index={2} />
+                    <PinInput.Input index={3} />
+                    <PinInput.Input index={4} />
+                    <PinInput.Input index={5} />
+                  </PinInput.Control>
+                </PinInput.Root>
+              </Box>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <Button variant="outline" onClick={closeVerifyModal}>
+                Cancelar
+              </Button>
+              <Button
+                colorPalette="green"
+                onClick={confirmPhoneVerification}
+                loading={isConfirmingVerification}
+              >
+                Confirmar Verificação
               </Button>
             </Dialog.Footer>
             <Dialog.CloseTrigger />

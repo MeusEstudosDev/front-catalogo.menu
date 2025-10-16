@@ -1,19 +1,72 @@
 "use client";
 
 import {
-    AddressesTab,
-    BasicInfoTab,
-    EmailsTab,
-    PhonesTab,
+  AddressesTab,
+  BasicInfoTab,
+  EmailsTab,
+  IBusinessDetail,
+  PhonesTab,
 } from "@/components/business-edit";
+import { toaster } from "@/components/ui/toaster";
 import { Box, Container, Heading, Spinner, Tabs, Text } from "@chakra-ui/react";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { FaEnvelope, FaInfoCircle, FaMapMarkerAlt, FaPhone } from "react-icons/fa";
 
 function BusinessesEditPageContent() {
   const searchParams = useSearchParams();
   const businessId = searchParams.get("id");
+  
+  const [business, setBusiness] = useState<IBusinessDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (businessId) {
+      fetchBusiness();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessId]);
+
+  const fetchBusiness = async () => {
+    setIsLoading(true);
+    try {
+      const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
+        r.json()
+      );
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}management/businesses/${businessId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setBusiness(data);
+      } else {
+        toaster.error({
+          title: "Erro ao carregar empresa",
+          description: "Não foi possível carregar os dados da empresa.",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao buscar empresa:", error);
+      toaster.error({
+        title: "Erro",
+        description: "Ocorreu um erro ao buscar os dados da empresa.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBusinessUpdate = (updatedBusiness: IBusinessDetail) => {
+    setBusiness(updatedBusiness);
+  };
 
   if (!businessId) {
     return (
@@ -27,6 +80,31 @@ function BusinessesEditPageContent() {
     );
   }
 
+  if (isLoading) {
+    return (
+      <Container maxW="container.xl" py={8}>
+        <Box textAlign="center" py={12}>
+          <Spinner size="xl" />
+          <Text mt={4} color="gray.500">
+            Carregando dados da empresa...
+          </Text>
+        </Box>
+      </Container>
+    );
+  }
+
+  if (!business) {
+    return (
+      <Container maxW="container.xl" py={8}>
+        <Box textAlign="center" py={12}>
+          <Text fontSize="lg" color="red.500">
+            Empresa não encontrada
+          </Text>
+        </Box>
+      </Container>
+    );
+  }
+
   return (
     <Container maxW="container.xl" py={8}>
       <Box>
@@ -34,7 +112,7 @@ function BusinessesEditPageContent() {
           Editar Empresa
         </Heading>
         <Text color="gray.600" _dark={{ color: "gray.400" }} mb={2}>
-          ID: {businessId}
+          {business.name} (#{business.code})
         </Text>
         <Text color="gray.600" _dark={{ color: "gray.400" }} mb={8}>
           Altere os dados da empresa conforme necessário
@@ -65,7 +143,7 @@ function BusinessesEditPageContent() {
 
           <Tabs.Content value="info">
             <Box p={6} bg="white" _dark={{ bg: "gray.800" }} borderRadius="md" shadow="sm">
-              <BasicInfoTab businessId={businessId} />
+              <BasicInfoTab business={business} onBusinessUpdate={handleBusinessUpdate} />
             </Box>
           </Tabs.Content>
 

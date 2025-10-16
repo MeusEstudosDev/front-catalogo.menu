@@ -10,6 +10,7 @@ const managementPaths = [
     "/manage-system/businesses/create",
     "/manage-system/businesses/edit",
     "/manage-system/users",
+    "/manage-system/whatsapp",
   ];
 
 function decodeJwt(token: string): any | null {

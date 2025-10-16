@@ -3,6 +3,7 @@
 import {
   Badge,
   Box,
+  Button,
   Center,
   Container,
   DialogBackdrop,
@@ -369,6 +370,11 @@ export default function ManageSystemPage() {
           <Heading as="h2" size="md" mb={4} color="gray.700" _dark={{ color: "gray.300" }}>
             📊 Empresas
           </Heading>
+
+          <Box mb={4}>
+            <Button >Conectar whatsapp</Button>
+          </Box>
+
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
             <StatusCard
               title="Empresas"

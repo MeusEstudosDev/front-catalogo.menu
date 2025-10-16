@@ -2,14 +2,14 @@
 
 import { toaster } from "@/components/ui/toaster";
 import {
-    Badge,
-    Box,
-    Button,
-    Dialog,
-    Input,
-    Spinner,
-    Table,
-    Text,
+  Badge,
+  Box,
+  Button,
+  Dialog,
+  Input,
+  Spinner,
+  Table,
+  Text,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { FaCheckCircle, FaEdit, FaPlus, FaTrash } from "react-icons/fa";
@@ -59,7 +59,7 @@ export function EmailsTab({ businessId }: EmailsTabProps) {
       );
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}businesses/${businessId}/emails`,
+        `${process.env.NEXT_PUBLIC_API_URL}management/businesses/${businessId}/emails`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -98,7 +98,7 @@ export function EmailsTab({ businessId }: EmailsTabProps) {
       );
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}businesses/${businessId}/emails`,
+        `${process.env.NEXT_PUBLIC_API_URL}management/businesses/${businessId}/emails`,
         {
           method: "POST",
           headers: {
@@ -153,7 +153,7 @@ export function EmailsTab({ businessId }: EmailsTabProps) {
       );
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}businesses/${businessId}/emails/${editingEmail.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}management/businesses/${businessId}/emails/${editingEmail.id}`,
         {
           method: "PUT",
           headers: {
@@ -202,7 +202,7 @@ export function EmailsTab({ businessId }: EmailsTabProps) {
       );
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}businesses/${businessId}/emails/${emailToDelete.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}management/businesses/${businessId}/emails/${emailToDelete.id}`,
         {
           method: "DELETE",
           headers: {
