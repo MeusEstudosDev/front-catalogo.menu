@@ -346,6 +346,8 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
     setVerificationCode("");
   };
 
+  const PIN_LENGTH = 6;
+
   return (
     <Box display="flex" flexDir="column" gap={4} w="100%" px={{ base: 4, md: 0 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -833,25 +835,16 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
               <Box>
                 <Text mb={2}>Código de verificação</Text>
                 <PinInput.Root
-                  value={verificationCode.split("")}
-                  onValueChange={(details) =>
-                    setVerificationCode(
-                      Array.isArray(details.value)
-                        ? details.value.join("")
-                        : details.value
-                    )
-                  }
+                  value={Array.from({ length: PIN_LENGTH }, (_, i) => verificationCode[i] ?? "")}
+                  onValueChange={(details) => setVerificationCode(details.valueAsString)}
                   otp
                   type="alphanumeric"
                 >
                   <PinInput.HiddenInput />
                   <PinInput.Control>
-                    <PinInput.Input index={0} />
-                    <PinInput.Input index={1} />
-                    <PinInput.Input index={2} />
-                    <PinInput.Input index={3} />
-                    <PinInput.Input index={4} />
-                    <PinInput.Input index={5} />
+                    {Array.from({ length: PIN_LENGTH }).map((_, i) => (
+                      <PinInput.Input key={i} index={i} />
+                    ))}
                   </PinInput.Control>
                 </PinInput.Root>
               </Box>

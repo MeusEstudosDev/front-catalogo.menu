@@ -2,12 +2,12 @@
 
 import { toaster } from "@/components/ui/toaster";
 import {
-    Box,
-    Button,
-    Dialog,
-    Input,
-    PinInput,
-    Text,
+  Box,
+  Button,
+  Dialog,
+  Input,
+  PinInput,
+  Text,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { FaCheckCircle, FaEdit, FaPlus, FaTrash } from "react-icons/fa";
@@ -439,6 +439,8 @@ export function PhonesTab() {
     setPhoneToVerify(null);
     setVerificationPhoneCode("");
   };
+
+  const PIN_LENGTH = 6;
 
   return (
     <Box display="flex" flexDir="row" gap={4}>
@@ -922,25 +924,16 @@ export function PhonesTab() {
               <Box>
                 <Text mb={2}>Código de verificação</Text>
                 <PinInput.Root
-                  value={verificationPhoneCode.split("")}
-                  onValueChange={(details) =>
-                    setVerificationPhoneCode(
-                      Array.isArray(details.value)
-                        ? details.value.join("")
-                        : details.value
-                    )
-                  }
+                  value={Array.from({ length: PIN_LENGTH }, (_, i) => verificationPhoneCode[i] ?? "")}
+                  onValueChange={(details) => setVerificationPhoneCode(details.valueAsString)}
                   otp
                   type="alphanumeric"
                 >
                   <PinInput.HiddenInput />
                   <PinInput.Control>
-                    <PinInput.Input index={0} />
-                    <PinInput.Input index={1} />
-                    <PinInput.Input index={2} />
-                    <PinInput.Input index={3} />
-                    <PinInput.Input index={4} />
-                    <PinInput.Input index={5} />
+                    {Array.from({ length: PIN_LENGTH }).map((_, i) => (
+                      <PinInput.Input key={i} index={i} />
+                    ))}
                   </PinInput.Control>
                 </PinInput.Root>
               </Box>

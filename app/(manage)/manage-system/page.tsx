@@ -372,7 +372,7 @@ export default function ManageSystemPage() {
           </Heading>
 
           <Box mb={4}>
-            <Button >Conectar whatsapp</Button>
+            <Button onClick={() => router.push('/manage-system/whatsapp')}>Whatsapps</Button>
           </Box>
 
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>

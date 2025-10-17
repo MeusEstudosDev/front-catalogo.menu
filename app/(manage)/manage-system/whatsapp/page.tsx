@@ -15,8 +15,9 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { Suspense, useEffect, useState } from "react";
-import { FaPlus, FaTrash, FaWhatsapp } from "react-icons/fa";
+import { FaPlus, FaWhatsapp } from "react-icons/fa";
 import { MdRefresh } from "react-icons/md";
+import { VscDebugDisconnect } from "react-icons/vsc";
 
 interface WhatsAppSession {
   business_id: string;
@@ -366,7 +367,7 @@ function WhatsAppPageContent() {
                           variant="outline"
                           onClick={() => openDisconnectModal(session)}
                         >
-                          <FaTrash />
+                          <VscDebugDisconnect  />
                           Desconectar
                         </Button>
                       )}
