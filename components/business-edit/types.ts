@@ -52,11 +52,10 @@ export interface IBusinessEmail {
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
-  type: "GENERAL" | "SALES" | "SUPPORT" | "BILLING" | "OTHER";
+  name: string;
   email: string;
-  is_verified: boolean;
   primary: boolean;
-  verified_at: Date | null;
+  verified: Date | null;
   business_id: string;
 }
 

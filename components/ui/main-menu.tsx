@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { Fragment, useEffect, useState } from "react";
 import { LuLogOut, LuSettings, LuUser } from "react-icons/lu";
 import { SiAwssecretsmanager } from 'react-icons/si';
+import { ColorModeButton } from "./color-mode";
 
 const MainMenu: React.FC = () => {
   const router = useRouter();
@@ -29,9 +30,12 @@ const MainMenu: React.FC = () => {
     profile_uri?: string;
     type?: "MANAGEMENT" | "MARKETPLACE" | "APPLICATION";
   } | null>(null);
-  const [imageBust, setImageBust] = useState<number>(Date.now());
+  const [imageBust, setImageBust] = useState<number>(0);
 
   useEffect(() => {
+    // garante bust somente no cliente para evitar mismatch
+    setImageBust(Date.now());
+
     async function fetchProfile() {
       try {
         const res = await fetch("/api/get-cookies?key=profile");
@@ -75,7 +79,9 @@ const MainMenu: React.FC = () => {
 
   const withCacheBust = (url?: string, bust?: number) =>
     url
-      ? `${url}${url.includes("?") ? "&" : "?"}cb=${bust ?? Date.now()}`
+      ? bust
+        ? `${url}${url.includes("?") ? "&" : "?"}cb=${bust}`
+        : url
       : undefined;
 
   return (
@@ -85,8 +91,8 @@ const MainMenu: React.FC = () => {
         w="100%"
         py={4}
         borderBottom="1px"
-        bg="gray.950"
-        borderColor="gray.100"
+        bg="var(--background)"
+        borderColor="var(--border)"
         display={"flex"}
         flexDir={"row"}
         justifyContent={"space-between"}
@@ -104,84 +110,88 @@ const MainMenu: React.FC = () => {
           </Box>
         </Flex>
 
-        <Menu.Root positioning={{ placement: "right-end" }}>
-          <Menu.Trigger rounded="full" focusRing="none">
-            <Avatar.Root
-              colorPalette="green"
-              variant="subtle"
-              style={{ cursor: "pointer" }}
-            >
-              <Avatar.Fallback name={profile?.name || "Usuário"} />
-              <Avatar.Image
-                src={withCacheBust(profile?.profile_uri, imageBust)}
-              />
-            </Avatar.Root>
-          </Menu.Trigger>
-          <Portal>
-            <Menu.Positioner>
-              <Menu.Content>
-                <Menu.Item value="profile">
-                  <Avatar.Root variant="subtle" size="xs">
-                    <Avatar.Fallback name={profile?.name || "Usuário"} />
-                    <Avatar.Image
-                      src={withCacheBust(profile?.profile_uri, imageBust)}
-                    />
-                  </Avatar.Root>
-                  {profile?.name}
-                </Menu.Item>
+        <Flex align="center" gap={3}>
+          <ColorModeButton />
 
-                <Menu.Separator />
+          <Menu.Root positioning={{ placement: "right-end" }}>
+            <Menu.Trigger rounded="full" focusRing="none">
+              <Avatar.Root
+                colorPalette="green"
+                variant="subtle"
+                style={{ cursor: "pointer" }}
+              >
+                <Avatar.Fallback name={profile?.name || "Usuário"} />
+                <Avatar.Image
+                  src={withCacheBust(profile?.profile_uri, imageBust || undefined)}
+                />
+              </Avatar.Root>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner>
+                <Menu.Content>
+                  <Menu.Item value="profile">
+                    <Avatar.Root variant="subtle" size="xs">
+                      <Avatar.Fallback name={profile?.name || "Usuário"} />
+                      <Avatar.Image
+                        src={withCacheBust(profile?.profile_uri, imageBust || undefined)}
+                      />
+                    </Avatar.Root>
+                    {profile?.name}
+                  </Menu.Item>
 
-                {
-                  profile?.type === "MANAGEMENT" && (                <Menu.Item
-                    onClick={() => router.replace("/manage-system")}
+                  <Menu.Separator />
+
+                  {
+                    profile?.type === "MANAGEMENT" && (                <Menu.Item
+                      onClick={() => router.replace("/manage-system")}
+                      style={{ cursor: "pointer" }}
+                      value="manage-system"
+                    >
+                      <Flex align="center" gap={2}>
+                        <SiAwssecretsmanager />
+                        Gerenciar sistema
+                      </Flex>
+                    </Menu.Item>)
+                  }
+
+                  <Menu.Item
+                    onClick={() => router.replace("/account")}
                     style={{ cursor: "pointer" }}
-                    value="manage-system"
+                    value="account"
                   >
                     <Flex align="center" gap={2}>
-                      <SiAwssecretsmanager />
-                      Gerenciar sistema
+                      <LuUser />
+                      Minha conta
                     </Flex>
-                  </Menu.Item>)
-                }
+                  </Menu.Item>
 
-                <Menu.Item
-                  onClick={() => router.replace("/account")}
-                  style={{ cursor: "pointer" }}
-                  value="account"
-                >
-                  <Flex align="center" gap={2}>
-                    <LuUser />
-                    Minha conta
-                  </Flex>
-                </Menu.Item>
+                  <Menu.Item
+                    value="settings"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => router.replace("/settings")}
+                  >
+                    <Flex align="center" gap={2}>
+                      <LuSettings />
+                      Configurações
+                    </Flex>
+                  </Menu.Item>
 
-                <Menu.Item
-                  value="settings"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => router.replace("/settings")}
-                >
-                  <Flex align="center" gap={2}>
-                    <LuSettings />
-                    Configurações
-                  </Flex>
-                </Menu.Item>
+                  <Menu.Separator />
 
-                <Menu.Separator />
-
-                <Menu.Item
-                  value="logout"
-                  style={{ cursor: "pointer" }}
-                  onClick={handleLogout}
-                >
-                  <Flex align="center" gap={2}>
-                    <LuLogOut /> Logout
-                  </Flex>
-                </Menu.Item>
-              </Menu.Content>
-            </Menu.Positioner>
-          </Portal>
-        </Menu.Root>
+                  <Menu.Item
+                    value="logout"
+                    style={{ cursor: "pointer" }}
+                    onClick={handleLogout}
+                  >
+                    <Flex align="center" gap={2}>
+                      <LuLogOut /> Logout
+                    </Flex>
+                  </Menu.Item>
+                </Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
+        </Flex>
       </Box>
 
       <Breadcrumb.Root ml={4} mt={2}>

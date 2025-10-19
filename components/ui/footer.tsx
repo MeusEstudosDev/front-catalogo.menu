@@ -7,21 +7,21 @@ const Footer: React.FC = () => {
       as="footer"
       w="100%"
       py={4}
-      bg="gray.50"
+      bg="var(--background)"
       borderTop="1px"
-      borderColor="gray.200"
+      borderColor="var(--border)"
       textAlign="center"
     >
       <Flex direction="column" align="center" gap={2}>
         <Flex gap={4}>
-          <Link href="/privacy" fontSize="sm" color="gray.500">
+          <Link href="/privacy" fontSize="sm" color="var(--muted-foreground)">
             Privacidade
           </Link>
-          <Link href="/terms" fontSize="sm" color="gray.500">
+          <Link href="/terms" fontSize="sm" color="var(--muted-foreground)">
             Termos
           </Link>
         </Flex>
-        <Text fontSize="sm" color="gray.600">
+        <Text fontSize="sm" color="var(--subtle-foreground)">
           © {new Date().getFullYear()} Meu E-commerce. Todos os direitos
           reservados.
         </Text>
