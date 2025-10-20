@@ -4,6 +4,7 @@ import {
   AddressesTab,
   BasicInfoTab,
   EmailsTab,
+  EmployeesTab,
   IBusinessDetail,
   PhonesTab,
 } from "@/components/business-edit";
@@ -131,6 +132,14 @@ function BusinessesEditPageContent() {
             <FaEnvelope />
             E-mails
           </Tabs.Trigger>
+
+          <Tabs.Trigger value="employees">
+            {/* Ícone de usuários */}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: 6 }}>
+              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z" />
+            </svg>
+            Colaboradores
+          </Tabs.Trigger>
         </Tabs.List>
 
         <Tabs.Content value="account">
@@ -147,6 +156,10 @@ function BusinessesEditPageContent() {
 
         <Tabs.Content value="emails">
           <EmailsTab businessId={businessId} />
+        </Tabs.Content>
+
+        <Tabs.Content value="employees">
+          <EmployeesTab businessId={businessId} />
         </Tabs.Content>
       </Tabs.Root>
     </Box>

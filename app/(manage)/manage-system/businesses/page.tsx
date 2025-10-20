@@ -122,7 +122,7 @@ function BusinessesPageContent() {
         description: "Ocorreu um erro ao buscar as empresas.",
       });
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
   };
 
@@ -546,7 +546,7 @@ function BusinessesPageContent() {
         {!isLoading && businesses.length > 0 && (
           <Flex justify="space-between" align="center" mt={6} flexWrap="wrap" gap={4}>
             <Text fontSize="sm" color="gray.600">
-              Mostrando {(pageNumber - 1) * pageSize + 1} -{" "}
+              Mostrando {(pageNumber - 1) * pageSize + 1} - {" "}
               {Math.min(pageNumber * pageSize, total)} de {total} empresas
             </Text>
             <Flex gap={2}>
