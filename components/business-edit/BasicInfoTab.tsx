@@ -1,20 +1,21 @@
 "use client";
 
 import {
-    BusinessStatus,
-    formatCnpj,
-    formatDate,
-    getStatusColorScheme,
-    translateStatus,
+  BusinessStatus,
+  formatCnpj,
+  formatDate,
+  translateStatus
 } from "@/components/businesses";
 import { toaster } from "@/components/ui/toaster";
 import {
-    Badge,
-    Box,
-    Button,
-    Input,
-    InputGroup,
-    Text,
+  Box,
+  Button,
+  createListCollection,
+  Input,
+  InputGroup,
+  Portal,
+  Select,
+  Text
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { FaEdit } from "react-icons/fa";
@@ -82,6 +83,21 @@ export function BasicInfoTab({ business, onBusinessUpdate }: BasicInfoTabProps) 
     }
   };
 
+  const frameworks = createListCollection({
+  items: [
+    "ACTIVE",
+    "INACTIVE",
+    "SUSPENDED",
+    "PENDING",
+    "PAYMENT_PENDING",
+    "TRIAL",
+    "EXPIRED",
+    "ARCHIVED",
+    "BANNED",
+    "DELETED",
+  ] as BusinessStatus[],
+})
+
   return (
     <Box display="flex" flexDir="column" gap={6} p={6}>
       <Box display="flex" flexDir={{ base: "column", md: "row" }} gap={4}>
@@ -98,39 +114,7 @@ export function BasicInfoTab({ business, onBusinessUpdate }: BasicInfoTabProps) 
         </InputGroup>
       </Box>
 
-      <Box>
-        <Text fontSize="sm" mb={2} fontWeight="medium">
-          Status
-        </Text>
-        <Box display="flex" alignItems="center" gap={3}>
-          <select
-            value={formData.status}
-            onChange={(e) =>
-              setFormData({ ...formData, status: e.target.value as BusinessStatus })
-            }
-            style={{
-              width: "100%",
-              height: "40px",
-              padding: "0 12px",
-              border: "1px solid var(--chakra-colors-border)",
-              borderRadius: "6px",
-              backgroundColor: "transparent",
-              color: "inherit",
-              fontSize: "14px",
-              outline: "none",
-            }}
-          >
-            {Object.values(BusinessStatus).map((status) => (
-              <option key={status} value={status}>
-                {translateStatus(status)}
-              </option>
-            ))}
-          </select>
-          <Badge colorPalette={getStatusColorScheme(formData.status)} minW="120px" textAlign="center">
-            {translateStatus(formData.status)}
-          </Badge>
-        </Box>
-      </Box>
+
 
       <Box display="flex" flexDir={{ base: "column", md: "row" }} gap={4}>
         <InputGroup startAddon="CNPJ">
@@ -150,6 +134,39 @@ export function BasicInfoTab({ business, onBusinessUpdate }: BasicInfoTabProps) 
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
         </InputGroup>
+
+        <Box w="100%" display="flex" alignItems="center" gap={3}>
+          <Select.Root
+            value={[formData.status]}
+            onValueChange={(e) =>
+              setFormData({ ...formData, status: e.value[0] as BusinessStatus })
+            }
+            size="md"
+            collection={frameworks}
+          >
+            <Select.HiddenSelect />
+            <Select.Control>
+              <Select.Trigger>
+                <Select.ValueText placeholder="Selecione o status" />
+              </Select.Trigger>
+              <Select.IndicatorGroup>
+                <Select.Indicator />
+              </Select.IndicatorGroup>
+            </Select.Control>
+            <Portal>
+              <Select.Positioner>
+                <Select.Content>
+                  {frameworks.items.map((framework) => (
+                    <Select.Item item={framework} key={framework}>
+                      {translateStatus(framework)}
+                      <Select.ItemIndicator />
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Positioner>
+            </Portal>
+          </Select.Root>
+        </Box>
       </Box>
 
       <InputGroup startAddon="Website">

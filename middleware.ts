@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 const publicPaths = ["/", "/register"];
-const publicGlobalPaths = ["/privacy", "/terms", "/404"];
+const publicGlobalPaths = ["/privacy", "/terms", "/404", "/confirm-invite"];
 const privatePaths = ["/dashboard", "/account", "/settings"];
 const managementPaths = [
     "/manage-system",
@@ -199,7 +199,7 @@ export async function middleware(request: NextRequest) {
     if (validationResult) return validationResult;
   }
 
-  if (token && isPrivateRoute && !profile) {
+  if (token && isPrivateRoute && !profile?.value) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}profile`, {
       headers: {
         Authorization: `Bearer ${token.value}`,

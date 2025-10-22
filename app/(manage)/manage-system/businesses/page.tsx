@@ -52,10 +52,21 @@ function BusinessesPageContent() {
   // Estados dos modais
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<IBusiness | null>(null);
   const [newStatus, setNewStatus] = useState<BusinessStatus>(BusinessStatus.ACTIVE);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Estados do formulário de criação
+  const [newBusiness, setNewBusiness] = useState({
+    cnpj: "",
+    name: "",
+    website: "",
+    user_name: "",
+    user_email: "",
+  });
 
   // Buscar empresas
   const fetchBusinesses = async () => {
@@ -269,6 +280,77 @@ function BusinessesPageContent() {
     }
   };
 
+  // Criar nova empresa
+  const handleCreateBusiness = async () => {
+    if (!newBusiness.cnpj || !newBusiness.name || !newBusiness.user_name || !newBusiness.user_email) {
+      toaster.error({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos obrigatórios.",
+      });
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
+        r.json()
+      );
+
+      const body: any = {
+        cnpj: newBusiness.cnpj.replace(/\D/g, ""), // Remove formatação do CNPJ
+        name: newBusiness.name,
+        user_name: newBusiness.user_name,
+        user_email: newBusiness.user_email,
+      };
+
+      if (newBusiness.website) {
+        body.website = newBusiness.website;
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}management/businesses`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
+
+      if (response.ok) {
+        toaster.success({
+          title: "Empresa criada!",
+          description: `A empresa "${newBusiness.name}" foi criada com sucesso.`,
+        });
+        setIsCreateModalOpen(false);
+        setNewBusiness({
+          cnpj: "",
+          name: "",
+          website: "",
+          user_name: "",
+          user_email: "",
+        });
+        fetchBusinesses();
+      } else {
+        const error = await response.json();
+        toaster.error({
+          title: "Erro ao criar empresa",
+          description: error.message?.[0] || "Não foi possível criar a empresa.",
+        });
+      }
+    } catch (error: any) {
+      console.error("Erro ao criar empresa:", error);
+      toaster.error({
+        title: "Erro",
+        description: error.message || "Ocorreu um erro ao criar a empresa.",
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <Container maxW="container.xl" py={8}>
       <Box>
@@ -284,7 +366,7 @@ function BusinessesPageContent() {
           </Box>
           <Button
             colorPalette="blue"
-            onClick={() => router.push("/manage-system/businesses/create")}
+            onClick={() => setIsCreateModalOpen(true)}
           >
             <FaPlus />
             Criar nova empresa
@@ -586,6 +668,122 @@ function BusinessesPageContent() {
             </Flex>
           </Flex>
         )}
+
+        {/* Modal de Criação */}
+        <Dialog.Root
+          open={isCreateModalOpen}
+          onOpenChange={(e) => {
+            if (!e.open) {
+              setIsCreateModalOpen(false);
+              setNewBusiness({
+                cnpj: "",
+                name: "",
+                website: "",
+                user_name: "",
+                user_email: "",
+              });
+            }
+          }}
+        >
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>Criar Nova Empresa</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                <Box display="flex" flexDir="column" gap={4}>
+                  <Box>
+                    <Text fontSize="sm" mb={1} fontWeight="medium">
+                      CNPJ <Text as="span" color="red.500">*</Text>
+                    </Text>
+                    <Input
+                      placeholder="00.000.000/0000-00"
+                      value={formatCnpj(newBusiness.cnpj)}
+                      onChange={(e) =>
+                        setNewBusiness({ ...newBusiness, cnpj: e.target.value })
+                      }
+                    />
+                  </Box>
+                  <Box>
+                    <Text fontSize="sm" mb={1} fontWeight="medium">
+                      Nome da Empresa <Text as="span" color="red.500">*</Text>
+                    </Text>
+                    <Input
+                      placeholder="Nome da empresa"
+                      value={newBusiness.name}
+                      onChange={(e) =>
+                        setNewBusiness({ ...newBusiness, name: e.target.value })
+                      }
+                    />
+                  </Box>
+                  <Box>
+                    <Text fontSize="sm" mb={1} fontWeight="medium">
+                      Website
+                    </Text>
+                    <Input
+                      placeholder="https://exemplo.com.br"
+                      value={newBusiness.website}
+                      onChange={(e) =>
+                        setNewBusiness({ ...newBusiness, website: e.target.value })
+                      }
+                    />
+                  </Box>
+                  <Box>
+                    <Text fontSize="sm" mb={1} fontWeight="medium">
+                      Nome do Usuário <Text as="span" color="red.500">*</Text>
+                    </Text>
+                    <Input
+                      placeholder="Nome do usuário administrador"
+                      value={newBusiness.user_name}
+                      onChange={(e) =>
+                        setNewBusiness({ ...newBusiness, user_name: e.target.value })
+                      }
+                    />
+                  </Box>
+                  <Box>
+                    <Text fontSize="sm" mb={1} fontWeight="medium">
+                      E-mail do Usuário <Text as="span" color="red.500">*</Text>
+                    </Text>
+                    <Input
+                      type="email"
+                      placeholder="email@exemplo.com"
+                      value={newBusiness.user_email}
+                      onChange={(e) =>
+                        setNewBusiness({ ...newBusiness, user_email: e.target.value })
+                      }
+                    />
+                  </Box>
+                </Box>
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setNewBusiness({
+                      cnpj: "",
+                      name: "",
+                      website: "",
+                      user_name: "",
+                      user_email: "",
+                    });
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  colorPalette="blue"
+                  onClick={handleCreateBusiness}
+                  loading={isCreating}
+                >
+                  Criar Empresa
+                </Button>
+              </Dialog.Footer>
+              <Dialog.CloseTrigger />
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Dialog.Root>
 
         {/* Modal de Deleção */}
         <Dialog.Root
