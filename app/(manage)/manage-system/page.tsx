@@ -366,14 +366,15 @@ export default function ManageSystemPage() {
   return (
     <Container maxW="container.xl" py={8}>
       <Box>
+        <Box mb={4} gap={2} display="flex">
+          <Button onClick={() => router.push('/manage-system/whatsapp')}>Whatsapps</Button>
+          <Button onClick={() => router.push('/manage-system/notifications')}>Notificações</Button>
+        </Box>
+
         <Box mb={8}>
           <Heading as="h2" size="md" mb={4} color="gray.700" _dark={{ color: "gray.300" }}>
             📊 Empresas
           </Heading>
-
-          <Box mb={4}>
-            <Button onClick={() => router.push('/manage-system/whatsapp')}>Whatsapps</Button>
-          </Box>
 
           <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
             <StatusCard

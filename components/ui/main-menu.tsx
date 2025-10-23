@@ -1,5 +1,6 @@
 "use client";
 
+import { useNotifications, type INotification } from "@/hooks/useNotifications";
 import { Avatar, Badge, Box, Breadcrumb, Button, Checkbox, Dialog, Flex, IconButton, Menu, Portal, Spinner, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -7,6 +8,7 @@ import React, { Fragment, useEffect, useState } from "react";
 import { FaRegSquare, FaRegSquareCheck } from "react-icons/fa6";
 import { LuBell, LuCheck, LuLogOut, LuRefreshCw, LuSettings, LuTrash2, LuUser, LuX } from "react-icons/lu";
 import { SiAwssecretsmanager } from 'react-icons/si';
+import { io, Socket } from "socket.io-client";
 import { ColorModeButton } from "./color-mode";
 import { toaster } from "./toaster";
 
@@ -17,19 +19,6 @@ const MainMenu: React.FC = () => {
   // Tipos de notificação
   type NotificationType = "INFO" | "SUCCESS" | "WARNING" | "ERROR" | "SYSTEM" | "PROMOTION" | "ORDER" | "MESSAGE" | "PAYMENT" | "ACCOUNT";
   type NotificationPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
-
-  interface INotification {
-    id: string;
-    created_at: string;
-    read_at: string | null;
-    type: NotificationType;
-    priority: NotificationPriority;
-    title: string;
-    message: string;
-    action_url?: string;
-    metadata?: any;
-    expires_at?: string;
-  }
 
   const handleLogout = async () => {
     await fetch("/api/delete-cookies?key=profile", {
@@ -45,16 +34,15 @@ const MainMenu: React.FC = () => {
   };
 
   const [profile, setProfile] = useState<{
+    id?: string;
     name?: string;
     profile_uri?: string;
     type?: "MANAGEMENT" | "MARKETPLACE" | "APPLICATION";
   } | null>(null);
   const [imageBust, setImageBust] = useState<number>(0);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   // Estados de notificações
-  const [notifications, setNotifications] = useState<INotification[]>([]);
-  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
-  const [isLoadingMoreNotifications, setIsLoadingMoreNotifications] = useState(false);
   const [showOnlyUnread, setShowOnlyUnread] = useState(() => {
     // Recuperar preferência do localStorage
     if (typeof window !== 'undefined') {
@@ -66,12 +54,107 @@ const MainMenu: React.FC = () => {
   const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<INotification | null>(null);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
-  
-  // Estados de paginação
   const [notificationPage, setNotificationPage] = useState(1);
-  const [hasMoreNotifications, setHasMoreNotifications] = useState(false);
-  const [totalNotifications, setTotalNotifications] = useState(0);
-  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Hook SWR para notificações
+  const {
+    notifications,
+    hasMore,
+    total,
+    unreadCount,
+    isLoading: isLoadingNotifications,
+    isValidating,
+    toggleRead,
+    deleteNotification: deleteNotificationSWR,
+    refresh: refreshNotifications,
+    invalidateAll,
+  } = useNotifications({
+    page: notificationPage,
+    pageSize: 20,
+    unreadOnly: showOnlyUnread,
+    enabled: isNotificationMenuOpen, // Só busca quando menu está aberto
+  });
+
+  // Estado para loading de mais notificações
+  const [isLoadingMoreNotifications, setIsLoadingMoreNotifications] = useState(false);
+
+  // Estado para Socket.IO
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  // Conectar ao Socket.IO quando o profile estiver disponível
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    // Conectar ao backend via socket.io
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL;
+    
+    const newSocket = io(socketUrl, {
+      transports: ['websocket', 'polling'], // Tenta WebSocket primeiro, depois polling
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 10000,
+      // Adicionar headers se necessário
+      extraHeaders: {
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+
+    newSocket.on('connect', () => {
+    });
+
+    newSocket.on('disconnect', (reason) => {
+    });
+
+    newSocket.on('connect_error', (error: any) => {
+      console.error('Erro de conexão Socket.IO:', error.message);
+      console.error('Detalhes:', {
+        type: error.type || 'unknown',
+        description: error.description || error.message,
+      });
+    });
+
+    // Escutar eventos de notificação específicos do usuário
+    const notificationEvent = `${profile.id}-notifications`;
+
+    newSocket.on(notificationEvent, (notification: INotification) => {
+      // Mostrar toast com a nova notificação
+      const notificationTypeMap: Record<NotificationType, 'info' | 'success' | 'warning' | 'error'> = {
+        INFO: 'info',
+        SUCCESS: 'success',
+        WARNING: 'warning',
+        ERROR: 'error',
+        SYSTEM: 'info',
+        PROMOTION: 'info',
+        ORDER: 'info',
+        MESSAGE: 'info',
+        PAYMENT: 'info',
+        ACCOUNT: 'info',
+      };
+
+      const toastType = notificationTypeMap[notification.type] || 'info';
+      
+      toaster.create({
+        title: notification.title,
+        description: notification.message,
+        type: toastType,
+        duration: 5000,
+        closable: true,
+      });
+
+      // Invalidar todas as páginas de notificações para atualizar
+      invalidateAll();
+    });
+
+    setSocket(newSocket);
+
+    // Cleanup: desconectar quando o componente for desmontado
+    return () => {
+      console.log('Desconectando Socket.IO...');
+      newSocket.off(notificationEvent);
+      newSocket.disconnect();
+    };
+  }, [profile?.id]);
 
   // Salvar preferência no localStorage quando mudar
   useEffect(() => {
@@ -83,7 +166,8 @@ const MainMenu: React.FC = () => {
   // Recarregar notificações quando o filtro mudar
   useEffect(() => {
     if (isNotificationMenuOpen) {
-      fetchNotifications(1, false);
+      setNotificationPage(1); // Reset para página 1
+      refreshNotifications();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showOnlyUnread]);
@@ -93,6 +177,7 @@ const MainMenu: React.FC = () => {
     setImageBust(Date.now());
 
     async function fetchProfile() {
+      setIsLoadingProfile(true);
       try {
         const res = await fetch("/api/get-cookies?key=profile");
         const data = await res.json();
@@ -108,10 +193,11 @@ const MainMenu: React.FC = () => {
         }
       } catch {
         setProfile(null);
+      } finally {
+        setIsLoadingProfile(false);
       }
     }
     fetchProfile();
-    fetchNotifications(1, false);
 
     const handler = (e: Event) => {
       const custom = e as CustomEvent<string>;
@@ -141,136 +227,48 @@ const MainMenu: React.FC = () => {
         : url
       : undefined;
 
-  // Buscar notificações
-  const fetchNotifications = async (page: number = 1, append: boolean = false) => {
-    if (append) {
-      setIsLoadingMoreNotifications(true);
-    } else {
-      setIsLoadingNotifications(true);
-    }
-    
-    try {
-      const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
-        r.json()
-      );
-
-      // Construir query params
-      const params = new URLSearchParams({
-        page_number: String(page),
-        page_size: "20",
-        unread_only: showOnlyUnread ? "s" : "n",
-      });
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}users/notifications?${params.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (append) {
-          setNotifications(prev => [...prev, ...data.data]);
-        } else {
-          setNotifications(data.data);
-        }
-        
-        setHasMoreNotifications(data.has_more);
-        setTotalNotifications(data.total);
-        setNotificationPage(data.page_number);
-        setUnreadCount(data.information?.unread_count || 0);
-      }
-    } catch (error) {
-      console.error("Erro ao buscar notificações:", error);
-    } finally {
-      setIsLoadingNotifications(false);
-      setIsLoadingMoreNotifications(false);
-    }
-  };
-
   // Carregar mais notificações
   const loadMoreNotifications = () => {
-    if (!isLoadingMoreNotifications && hasMoreNotifications) {
-      fetchNotifications(notificationPage + 1, true);
+    if (!isLoadingMoreNotifications && hasMore) {
+      setIsLoadingMoreNotifications(true);
+      setNotificationPage(prev => prev + 1);
+      // SWR irá buscar automaticamente com a nova página
+      setTimeout(() => setIsLoadingMoreNotifications(false), 500);
     }
   };
 
-  // Marcar como lida/não lida
-  const toggleReadNotification = async (notificationId: string, isRead: boolean) => {
-    try {
-      const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
-        r.json()
-      );
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}users/notifications/${notificationId}/${isRead ? 'unread' : 'read'}`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        toaster.success({
-          title: isRead ? "Marcada como não lida" : "Marcada como lida",
-        });
-        fetchNotifications(1, false);
-      } else {
-        toaster.error({
-          title: "Erro",
-          description: "Não foi possível atualizar a notificação.",
-        });
-      }
-    } catch (error) {
+  // Marcar como lida/não lida com SWR (não espera, não bloqueia)
+  const toggleReadNotification = (notificationId: string, isRead: boolean) => {
+    // Não espera (fire and forget)
+    toggleRead(notificationId, isRead).catch((error) => {
       console.error("Erro ao atualizar notificação:", error);
       toaster.error({
         title: "Erro",
-        description: "Ocorreu um erro ao atualizar a notificação.",
+        description: "Não foi possível atualizar a notificação. Tentando novamente...",
       });
-    }
+    });
+    
+    // Toast de sucesso imediato (otimista)
+    toaster.success({
+      title: isRead ? "Marcada como não lida" : "Marcada como lida",
+    });
   };
 
-  // Deletar notificação
-  const deleteNotification = async (notificationId: string) => {
-    try {
-      const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
-        r.json()
-      );
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}users/notifications/${notificationId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        toaster.success({
-          title: "Notificação removida",
-        });
-        fetchNotifications(1, false);
-      } else {
-        toaster.error({
-          title: "Erro",
-          description: "Não foi possível remover a notificação.",
-        });
-      }
-    } catch (error) {
+  // Deletar notificação com SWR (não espera, não bloqueia)
+  const deleteNotification = (notificationId: string) => {
+    // Não espera (fire and forget)
+    deleteNotificationSWR(notificationId).catch((error) => {
       console.error("Erro ao deletar notificação:", error);
       toaster.error({
         title: "Erro",
-        description: "Ocorreu um erro ao remover a notificação.",
+        description: "Não foi possível remover a notificação. Tentando novamente...",
       });
-    }
+    });
+    
+    // Toast de sucesso imediato (otimista)
+    toaster.success({
+      title: "Notificação removida",
+    });
   };
 
   // Função para obter cor baseada no tipo
@@ -327,7 +325,7 @@ const MainMenu: React.FC = () => {
     const scrollPercentage = (target.scrollTop + target.clientHeight) / target.scrollHeight;
     
     // Carregar mais quando chegar a 80% do scroll
-    if (scrollPercentage > 0.8 && hasMoreNotifications && !isLoadingMoreNotifications) {
+    if (scrollPercentage > 0.8 && hasMore && !isLoadingMoreNotifications) {
       loadMoreNotifications();
     }
   };
@@ -356,8 +354,16 @@ const MainMenu: React.FC = () => {
               height={40}
             />
           </Box>
-        </Flex>        <Flex align="center" gap={3}>
-          <ColorModeButton />
+        </Flex>
+        
+        {isLoadingProfile ? (
+          <Flex align="center" gap={3}>
+            <Spinner size="sm" />
+            <Text fontSize="sm" color="gray.500">Carregando...</Text>
+          </Flex>
+        ) : (
+          <Flex align="center" gap={3}>
+            <ColorModeButton />
 
           {/* Menu de Notificações */}
           <Menu.Root
@@ -365,15 +371,14 @@ const MainMenu: React.FC = () => {
             onOpenChange={(e) => setIsNotificationMenuOpen(e.open)}
             positioning={{ placement: "bottom-end" }}
           >
-            <Menu.Trigger>
-              <Box position="relative">
-                <IconButton
-                  aria-label="Notificações"
-                  variant="ghost"
-                  size="sm"
-                >
-                  <LuBell size={20} />
-                </IconButton>
+            <Menu.Trigger asChild>
+              <IconButton
+                aria-label="Notificações"
+                variant="ghost"
+                size="sm"
+                position="relative"
+              >
+                <LuBell size={20} />
                 {unreadCount > 0 && (
                   <Badge
                     position="absolute"
@@ -389,7 +394,7 @@ const MainMenu: React.FC = () => {
                     {unreadCount}
                   </Badge>
                 )}
-              </Box>
+              </IconButton>
             </Menu.Trigger>
             <Portal>
               <Menu.Positioner>
@@ -398,9 +403,9 @@ const MainMenu: React.FC = () => {
                     <Flex justify="space-between" align="center" mb={3}>
                       <Text fontWeight="bold" fontSize="md">
                         Notificações
-                        {totalNotifications > 0 && (
+                        {total > 0 && (
                           <Text as="span" ml={2} fontSize="xs" color="gray.500">
-                            ({totalNotifications} total)
+                            ({total} total)
                           </Text>
                         )}
                       </Text>
@@ -408,12 +413,12 @@ const MainMenu: React.FC = () => {
                         aria-label="Atualizar notificações"
                         size="xs"
                         variant="ghost"
-                        onClick={() => fetchNotifications(1, false)}
-                        disabled={isLoadingNotifications}
+                        onClick={() => refreshNotifications()}
+                        disabled={isLoadingNotifications || isValidating}
                       >
                         <LuRefreshCw
                           style={{
-                            animation: isLoadingNotifications
+                            animation: (isLoadingNotifications || isValidating)
                               ? "spin 1s linear infinite"
                               : "none",
                           }}
@@ -530,7 +535,7 @@ const MainMenu: React.FC = () => {
                         )}
                         
                         {/* Indicador de fim das notificações */}
-                        {!hasMoreNotifications && notifications.length > 0 && (
+                        {!hasMore && notifications.length > 0 && (
                           <Box textAlign="center" py={3} borderTop="1px" borderColor="gray.200">
                             <Text fontSize="xs" color="gray.400">
                               Todas as notificações foram carregadas
@@ -779,6 +784,7 @@ const MainMenu: React.FC = () => {
             </Portal>
           </Menu.Root>
         </Flex>
+        )}
       </Box>
 
       <Breadcrumb.Root ml={4} mt={2}>
