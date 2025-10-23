@@ -1,9 +1,10 @@
 "use client";
 
-import { Avatar, Badge, Box, Breadcrumb, Checkbox, Flex, IconButton, Menu, Portal, Spinner, Text } from "@chakra-ui/react";
+import { Avatar, Badge, Box, Breadcrumb, Button, Checkbox, Dialog, Flex, IconButton, Menu, Portal, Spinner, Text } from "@chakra-ui/react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import React, { Fragment, useEffect, useState } from "react";
+import { FaRegSquare, FaRegSquareCheck } from "react-icons/fa6";
 import { LuBell, LuCheck, LuLogOut, LuRefreshCw, LuSettings, LuTrash2, LuUser, LuX } from "react-icons/lu";
 import { SiAwssecretsmanager } from 'react-icons/si';
 import { ColorModeButton } from "./color-mode";
@@ -53,6 +54,7 @@ const MainMenu: React.FC = () => {
   // Estados de notificações
   const [notifications, setNotifications] = useState<INotification[]>([]);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const [isLoadingMoreNotifications, setIsLoadingMoreNotifications] = useState(false);
   const [showOnlyUnread, setShowOnlyUnread] = useState(() => {
     // Recuperar preferência do localStorage
     if (typeof window !== 'undefined') {
@@ -62,12 +64,28 @@ const MainMenu: React.FC = () => {
     return false;
   });
   const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<INotification | null>(null);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  
+  // Estados de paginação
+  const [notificationPage, setNotificationPage] = useState(1);
+  const [hasMoreNotifications, setHasMoreNotifications] = useState(false);
+  const [totalNotifications, setTotalNotifications] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Salvar preferência no localStorage quando mudar
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('notifications_show_only_unread', JSON.stringify(showOnlyUnread));
     }
+  }, [showOnlyUnread]);
+
+  // Recarregar notificações quando o filtro mudar
+  useEffect(() => {
+    if (isNotificationMenuOpen) {
+      fetchNotifications(1, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showOnlyUnread]);
 
   useEffect(() => {
@@ -93,7 +111,7 @@ const MainMenu: React.FC = () => {
       }
     }
     fetchProfile();
-    fetchNotifications();
+    fetchNotifications(1, false);
 
     const handler = (e: Event) => {
       const custom = e as CustomEvent<string>;
@@ -124,15 +142,27 @@ const MainMenu: React.FC = () => {
       : undefined;
 
   // Buscar notificações
-  const fetchNotifications = async () => {
-    setIsLoadingNotifications(true);
+  const fetchNotifications = async (page: number = 1, append: boolean = false) => {
+    if (append) {
+      setIsLoadingMoreNotifications(true);
+    } else {
+      setIsLoadingNotifications(true);
+    }
+    
     try {
       const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
         r.json()
       );
 
+      // Construir query params
+      const params = new URLSearchParams({
+        page_number: String(page),
+        page_size: "20",
+        unread_only: showOnlyUnread ? "s" : "n",
+      });
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}users/notifications`,
+        `${process.env.NEXT_PUBLIC_API_URL}users/notifications?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -142,12 +172,30 @@ const MainMenu: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setNotifications(data);
+        
+        if (append) {
+          setNotifications(prev => [...prev, ...data.data]);
+        } else {
+          setNotifications(data.data);
+        }
+        
+        setHasMoreNotifications(data.has_more);
+        setTotalNotifications(data.total);
+        setNotificationPage(data.page_number);
+        setUnreadCount(data.information?.unread_count || 0);
       }
     } catch (error) {
       console.error("Erro ao buscar notificações:", error);
     } finally {
       setIsLoadingNotifications(false);
+      setIsLoadingMoreNotifications(false);
+    }
+  };
+
+  // Carregar mais notificações
+  const loadMoreNotifications = () => {
+    if (!isLoadingMoreNotifications && hasMoreNotifications) {
+      fetchNotifications(notificationPage + 1, true);
     }
   };
 
@@ -172,7 +220,7 @@ const MainMenu: React.FC = () => {
         toaster.success({
           title: isRead ? "Marcada como não lida" : "Marcada como lida",
         });
-        fetchNotifications();
+        fetchNotifications(1, false);
       } else {
         toaster.error({
           title: "Erro",
@@ -209,7 +257,7 @@ const MainMenu: React.FC = () => {
         toaster.success({
           title: "Notificação removida",
         });
-        fetchNotifications();
+        fetchNotifications(1, false);
       } else {
         toaster.error({
           title: "Erro",
@@ -254,6 +302,36 @@ const MainMenu: React.FC = () => {
     return null;
   };
 
+  // Abrir modal de notificação
+  const openNotificationModal = (notification: INotification) => {
+    setSelectedNotification(notification);
+    setIsNotificationModalOpen(true);
+    setIsNotificationMenuOpen(false);
+  };
+
+  // Fechar modal de notificação
+  const closeNotificationModal = () => {
+    setSelectedNotification(null);
+    setIsNotificationModalOpen(false);
+  };
+
+  // Truncar texto
+  const truncateText = (text: string, maxLength: number = 80) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  };
+
+  // Handler de scroll para paginação infinita
+  const handleNotificationScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const scrollPercentage = (target.scrollTop + target.clientHeight) / target.scrollHeight;
+    
+    // Carregar mais quando chegar a 80% do scroll
+    if (scrollPercentage > 0.8 && hasMoreNotifications && !isLoadingMoreNotifications) {
+      loadMoreNotifications();
+    }
+  };
+
   return (
     <>
       <Box
@@ -296,7 +374,7 @@ const MainMenu: React.FC = () => {
                 >
                   <LuBell size={20} />
                 </IconButton>
-                {notifications.filter((n) => !n.read_at).length > 0 && (
+                {unreadCount > 0 && (
                   <Badge
                     position="absolute"
                     top="-2px"
@@ -308,7 +386,7 @@ const MainMenu: React.FC = () => {
                     minW="20px"
                     textAlign="center"
                   >
-                    {notifications.filter((n) => !n.read_at).length}
+                    {unreadCount}
                   </Badge>
                 )}
               </Box>
@@ -317,15 +395,20 @@ const MainMenu: React.FC = () => {
               <Menu.Positioner>
                 <Menu.Content minW="400px" maxW="500px" maxH="600px">
                   <Box p={3} borderBottom="1px" borderColor="gray.200">
-                    <Flex justify="space-between" align="center" mb={2}>
-                      <Text fontWeight="bold" fontSize="lg">
+                    <Flex justify="space-between" align="center" mb={3}>
+                      <Text fontWeight="bold" fontSize="md">
                         Notificações
+                        {totalNotifications > 0 && (
+                          <Text as="span" ml={2} fontSize="xs" color="gray.500">
+                            ({totalNotifications} total)
+                          </Text>
+                        )}
                       </Text>
                       <IconButton
                         aria-label="Atualizar notificações"
                         size="xs"
                         variant="ghost"
-                        onClick={fetchNotifications}
+                        onClick={() => fetchNotifications(1, false)}
                         disabled={isLoadingNotifications}
                       >
                         <LuRefreshCw
@@ -349,7 +432,7 @@ const MainMenu: React.FC = () => {
                     </Checkbox.Root>
                   </Box>
 
-                  <Box maxH="400px" overflowY="auto">
+                  <Box maxH="400px" overflowY="auto" onScroll={handleNotificationScroll}>
                     {isLoadingNotifications ? (
                       <Flex justify="center" align="center" py={8}>
                         <Spinner size="lg" />
@@ -359,33 +442,31 @@ const MainMenu: React.FC = () => {
                         <Text color="gray.500">Nenhuma notificação</Text>
                       </Box>
                     ) : (
-                      notifications
-                        .filter((n) => !showOnlyUnread || !n.read_at)
-                        .map((notification) => (
+                      <>
+                        {notifications.map((notification) => (
                           <Box
                             key={notification.id}
                             p={3}
                             borderBottom="1px"
                             borderColor="gray.100"
-                            bg={notification.read_at ? "transparent" : "blue.50"}
+                            bg={notification.read_at ? "gray.50" : "blue.50"}
                             _dark={{
                               bg: notification.read_at
                                 ? "transparent"
                                 : "blue.900",
                             }}
                             _hover={{
-                              bg: "gray.50",
+                              bg: notification.read_at ? "gray.100" : "blue.100",
                               _dark: { bg: "gray.700" },
                             }}
-                            cursor={notification.action_url ? "pointer" : "default"}
-                            onClick={() => {
-                              if (notification.action_url) {
-                                router.push(notification.action_url);
-                                setIsNotificationMenuOpen(false);
-                              }
-                            }}
+                            cursor={"pointer"}
+                            onClick={() => openNotificationModal(notification)}
+                            mb={2}
                           >
-                            <Flex justify="space-between" align="start" mb={1}>
+                            <Flex justify="space-between" align="center" mb={1}>
+                              <Text fontWeight="semibold" fontSize="sm" mr={1}>
+                                {notification.title}
+                              </Text>
                               <Flex align="center" gap={2} flex="1">
                                 <Badge
                                   colorPalette={getNotificationColor(
@@ -414,7 +495,7 @@ const MainMenu: React.FC = () => {
                                     );
                                   }}
                                 >
-                                  {notification.read_at ? <LuX size={14} /> : <LuCheck size={14} />}
+                                  lida: {notification.read_at ? <FaRegSquareCheck size={14} /> : <FaRegSquare size={14} />}
                                 </IconButton>
                                 <IconButton
                                   aria-label="Deletar notificação"
@@ -430,11 +511,8 @@ const MainMenu: React.FC = () => {
                                 </IconButton>
                               </Flex>
                             </Flex>
-                            <Text fontWeight="semibold" fontSize="sm" mb={1}>
-                              {notification.title}
-                            </Text>
                             <Text fontSize="xs" color="gray.600" mb={1}>
-                              {notification.message}
+                              {truncateText(notification.message, 80)}
                             </Text>
                             <Text fontSize="xs" color="gray.400">
                               {new Date(notification.created_at).toLocaleString(
@@ -442,13 +520,185 @@ const MainMenu: React.FC = () => {
                               )}
                             </Text>
                           </Box>
-                        ))
+                        ))}
+                        
+                        {/* Loading de mais notificações */}
+                        {isLoadingMoreNotifications && (
+                          <Flex justify="center" align="center" py={4}>
+                            <Spinner size="md" />
+                          </Flex>
+                        )}
+                        
+                        {/* Indicador de fim das notificações */}
+                        {!hasMoreNotifications && notifications.length > 0 && (
+                          <Box textAlign="center" py={3} borderTop="1px" borderColor="gray.200">
+                            <Text fontSize="xs" color="gray.400">
+                              Todas as notificações foram carregadas
+                            </Text>
+                          </Box>
+                        )}
+                      </>
                     )}
                   </Box>
                 </Menu.Content>
               </Menu.Positioner>
             </Portal>
           </Menu.Root>
+
+          {/* Modal de Detalhes da Notificação */}
+          <Dialog.Root
+            open={isNotificationModalOpen}
+            onOpenChange={(e) => {
+              if (!e.open) {
+                closeNotificationModal();
+              }
+            }}
+          >
+            <Dialog.Backdrop />
+            <Dialog.Positioner>
+              <Dialog.Content maxW="600px">
+                  {selectedNotification && (<>
+                <Dialog.Header>
+                  <Dialog.Title>{selectedNotification.title}</Dialog.Title>
+                </Dialog.Header>
+                <Dialog.Body>
+                    <Box display="flex" flexDir="column" gap={4}>
+                      <Flex align="center" gap={2} flexWrap="wrap">
+                        <Badge
+                          colorPalette={getNotificationColor(
+                            selectedNotification.type
+                          )}
+                        >
+                          {selectedNotification.type}
+                        </Badge>
+                        {getPriorityBadge(selectedNotification.priority)}
+                        {selectedNotification.read_at ? (
+                          <Badge colorPalette="gray">Lida</Badge>
+                        ) : (
+                          <Badge colorPalette="blue">Não lida</Badge>
+                        )}
+                      </Flex>
+
+                      <Box>
+                        <Text fontSize="md" color="gray.700" _dark={{ color: "gray.300" }} whiteSpace="pre-wrap">
+                          {selectedNotification.message}
+                        </Text>
+                      </Box>
+
+                      <Box
+                        p={3}
+                        bg="gray.50"
+                        _dark={{ bg: "gray.800" }}
+                        borderRadius="md"
+                      >
+                        <Text fontSize="xs" color="gray.500" mb={1}>
+                          Data de criação
+                        </Text>
+                        <Text fontSize="sm">
+                          {new Date(
+                            selectedNotification.created_at
+                          ).toLocaleString("pt-BR", {
+                            dateStyle: "full",
+                            timeStyle: "short",
+                          })}
+                        </Text>
+                        {selectedNotification.read_at && (
+                          <>
+                            <Text fontSize="xs" color="gray.500" mt={2} mb={1}>
+                              Lida em
+                            </Text>
+                            <Text fontSize="sm">
+                              {new Date(
+                                selectedNotification.read_at
+                              ).toLocaleString("pt-BR", {
+                                dateStyle: "full",
+                                timeStyle: "short",
+                              })}
+                            </Text>
+                          </>
+                        )}
+                        {selectedNotification.expires_at && (
+                          <>
+                            <Text fontSize="xs" color="gray.500" mt={2} mb={1}>
+                              Expira em
+                            </Text>
+                            <Text fontSize="sm">
+                              {new Date(
+                                selectedNotification.expires_at
+                              ).toLocaleString("pt-BR", {
+                                dateStyle: "full",
+                                timeStyle: "short",
+                              })}
+                            </Text>
+                          </>
+                        )}
+                      </Box>
+
+                      {selectedNotification.action_url && (
+                        <Button
+                          colorPalette="blue"
+                          onClick={() => {
+                            router.push(selectedNotification.action_url!);
+                            closeNotificationModal();
+                          }}
+                        >
+                          Ir para ação
+                        </Button>
+                      )}
+                    </Box>
+                </Dialog.Body>
+                  </>
+                  )}
+                <Dialog.Footer>
+                  <Flex justify="space-between" w="100%" gap={2}>
+                    <Flex gap={2}>
+                      <Button
+                        variant="outline"
+                        colorPalette={selectedNotification?.read_at ? "orange" : "green"}
+                        onClick={() => {
+                          if (selectedNotification) {
+                            toggleReadNotification(
+                              selectedNotification.id,
+                              !!selectedNotification.read_at
+                            );
+                            closeNotificationModal();
+                          }
+                        }}
+                        size="sm"
+                      >
+                        {selectedNotification?.read_at ? (
+                          <>
+                            <LuX /> Marcar como não lida
+                          </>
+                        ) : (
+                          <>
+                            <LuCheck /> Marcar como lida
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        colorPalette="red"
+                        onClick={() => {
+                          if (selectedNotification) {
+                            deleteNotification(selectedNotification.id);
+                            closeNotificationModal();
+                          }
+                        }}
+                        size="sm"
+                      >
+                        <LuTrash2 /> Deletar
+                      </Button>
+                    </Flex>
+                    <Button variant="outline" onClick={closeNotificationModal} size="sm">
+                      Fechar
+                    </Button>
+                  </Flex>
+                </Dialog.Footer>
+                <Dialog.CloseTrigger />
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Dialog.Root>
 
           <Menu.Root positioning={{ placement: "right-end" }}>
             <Menu.Trigger rounded="full" focusRing="none">
