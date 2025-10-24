@@ -797,6 +797,7 @@ const MainMenu: React.FC = () => {
                 "manage-system": "gerenciamento do sistema",
                 businesses: "empresas",
                 users: "usuários",
+                notifications: "notificações",
               };
 
               const value =

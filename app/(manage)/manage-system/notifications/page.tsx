@@ -10,6 +10,7 @@ import {
   Flex,
   Heading,
   Input,
+  Portal,
   Select,
   Spinner,
   Table,
@@ -178,6 +179,27 @@ function NotificationsPageContent() {
     message: "",
     action_url: "",
     expires_at: "",
+  });
+
+  // Collections para os selects
+  const notificationTypes = createListCollection({
+    items: Object.values(NotificationType) as NotificationType[],
+  });
+
+  const notificationPriorities = createListCollection({
+    items: Object.values(NotificationPriority) as NotificationPriority[],
+  });
+
+  const userTypes = createListCollection({
+    items: ["", ...Object.values(UserType)] as (UserType | "")[],
+  });
+
+  const typeFilterOptions = createListCollection({
+    items: ["", ...Object.values(NotificationType)] as (NotificationType | "")[],
+  });
+
+  const priorityFilterOptions = createListCollection({
+    items: ["", ...Object.values(NotificationPriority)] as (NotificationPriority | "")[],
   });
 
   // Buscar notificações
@@ -539,34 +561,31 @@ function NotificationsPageContent() {
                 Tipo
               </Text>
               <Select.Root
-                collection={createListCollection({
-                  items: [
-                    { label: "Todos", value: "" },
-                    ...Object.values(NotificationType).map((type) => ({
-                      label: translateType(type),
-                      value: type,
-                    })),
-                  ],
-                })}
+                collection={typeFilterOptions}
                 value={[typeFilter]}
                 onValueChange={(e) => setTypeFilter(e.value[0])}
               >
-                <Select.Trigger>
-                  <Select.ValueText placeholder="Selecione" />
-                </Select.Trigger>
-                <Select.Content>
-                  {[
-                    { label: "Todos", value: "" },
-                    ...Object.values(NotificationType).map((type) => ({
-                      label: translateType(type),
-                      value: type,
-                    })),
-                  ].map((option) => (
-                    <Select.Item key={option.value} item={option}>
-                      {option.label}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
+                <Select.HiddenSelect />
+                <Select.Control>
+                  <Select.Trigger>
+                    <Select.ValueText placeholder="Selecione" />
+                  </Select.Trigger>
+                  <Select.IndicatorGroup>
+                    <Select.Indicator />
+                  </Select.IndicatorGroup>
+                </Select.Control>
+                <Portal>
+                  <Select.Positioner>
+                    <Select.Content>
+                      {typeFilterOptions.items.map((type) => (
+                        <Select.Item key={type} item={type}>
+                          {type ? translateType(type) : "Todos"}
+                          <Select.ItemIndicator />
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Portal>
               </Select.Root>
             </Box>
 
@@ -575,34 +594,31 @@ function NotificationsPageContent() {
                 Prioridade
               </Text>
               <Select.Root
-                collection={createListCollection({
-                  items: [
-                    { label: "Todas", value: "" },
-                    ...Object.values(NotificationPriority).map((priority) => ({
-                      label: translatePriority(priority),
-                      value: priority,
-                    })),
-                  ],
-                })}
+                collection={priorityFilterOptions}
                 value={[priorityFilter]}
                 onValueChange={(e) => setPriorityFilter(e.value[0])}
               >
-                <Select.Trigger>
-                  <Select.ValueText placeholder="Selecione" />
-                </Select.Trigger>
-                <Select.Content>
-                  {[
-                    { label: "Todas", value: "" },
-                    ...Object.values(NotificationPriority).map((priority) => ({
-                      label: translatePriority(priority),
-                      value: priority,
-                    })),
-                  ].map((option) => (
-                    <Select.Item key={option.value} item={option}>
-                      {option.label}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
+                <Select.HiddenSelect />
+                <Select.Control>
+                  <Select.Trigger>
+                    <Select.ValueText placeholder="Selecione" />
+                  </Select.Trigger>
+                  <Select.IndicatorGroup>
+                    <Select.Indicator />
+                  </Select.IndicatorGroup>
+                </Select.Control>
+                <Portal>
+                  <Select.Positioner>
+                    <Select.Content>
+                      {priorityFilterOptions.items.map((priority) => (
+                        <Select.Item key={priority} item={priority}>
+                          {priority ? translatePriority(priority) : "Todas"}
+                          <Select.ItemIndicator />
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Portal>
               </Select.Root>
             </Box>
 
@@ -804,25 +820,29 @@ function NotificationsPageContent() {
                         Tipo
                       </Text>
                       <Select.Root
-                        collection={createListCollection({
-                          items: Object.values(NotificationType).map((type) => ({
-                            label: translateType(type),
-                            value: type,
-                          })),
-                        })}
+                        collection={notificationTypes}
                         value={[formData.type]}
                         onValueChange={(e) => setFormData({ ...formData, type: e.value[0] as NotificationType })}
                       >
-                        <Select.Trigger>
-                          <Select.ValueText placeholder="Selecione" />
-                        </Select.Trigger>
-                        <Select.Content>
-                          {Object.values(NotificationType).map((type) => (
-                            <Select.Item key={type} item={{ label: translateType(type), value: type }}>
-                              {translateType(type)}
-                            </Select.Item>
-                          ))}
-                        </Select.Content>
+                        <Select.HiddenSelect />
+                        <Select.Control>
+                          <Select.Trigger>
+                            <Select.ValueText placeholder="Selecione" />
+                          </Select.Trigger>
+                          <Select.IndicatorGroup>
+                            <Select.Indicator />
+                          </Select.IndicatorGroup>
+                        </Select.Control>
+                          <Select.Positioner>
+                            <Select.Content>
+                              {notificationTypes.items.map((type) => (
+                                <Select.Item key={type} item={type}>
+                                  {translateType(type)}
+                                  <Select.ItemIndicator />
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Positioner>
                       </Select.Root>
                     </Box>
 
@@ -831,25 +851,29 @@ function NotificationsPageContent() {
                         Prioridade
                       </Text>
                       <Select.Root
-                        collection={createListCollection({
-                          items: Object.values(NotificationPriority).map((priority) => ({
-                            label: translatePriority(priority),
-                            value: priority,
-                          })),
-                        })}
+                        collection={notificationPriorities}
                         value={[formData.priority]}
                         onValueChange={(e) => setFormData({ ...formData, priority: e.value[0] as NotificationPriority })}
                       >
-                        <Select.Trigger>
-                          <Select.ValueText placeholder="Selecione" />
-                        </Select.Trigger>
-                        <Select.Content>
-                          {Object.values(NotificationPriority).map((priority) => (
-                            <Select.Item key={priority} item={{ label: translatePriority(priority), value: priority }}>
-                              {translatePriority(priority)}
-                            </Select.Item>
-                          ))}
-                        </Select.Content>
+                        <Select.HiddenSelect />
+                        <Select.Control>
+                          <Select.Trigger>
+                            <Select.ValueText placeholder="Selecione" />
+                          </Select.Trigger>
+                          <Select.IndicatorGroup>
+                            <Select.Indicator />
+                          </Select.IndicatorGroup>
+                        </Select.Control>
+                          <Select.Positioner>
+                            <Select.Content>
+                              {notificationPriorities.items.map((priority) => (
+                                <Select.Item key={priority} item={priority}>
+                                  {translatePriority(priority)}
+                                  <Select.ItemIndicator />
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Positioner>
                       </Select.Root>
                     </Box>
                   </Flex>
@@ -859,34 +883,29 @@ function NotificationsPageContent() {
                       Destinatários
                     </Text>
                     <Select.Root
-                      collection={createListCollection({
-                        items: [
-                          { label: "Todos", value: "" },
-                          ...Object.values(UserType).map((userType) => ({
-                            label: translateUserType(userType),
-                            value: userType,
-                          })),
-                        ],
-                      })}
+                      collection={userTypes}
                       value={[formData.user_type]}
                       onValueChange={(e) => setFormData({ ...formData, user_type: e.value[0] })}
                     >
-                      <Select.Trigger>
-                        <Select.ValueText placeholder="Selecione" />
-                      </Select.Trigger>
-                      <Select.Content>
-                        {[
-                          { label: "Todos", value: "" },
-                          ...Object.values(UserType).map((userType) => ({
-                            label: translateUserType(userType),
-                            value: userType,
-                          })),
-                        ].map((option) => (
-                          <Select.Item key={option.value} item={option}>
-                            {option.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger>
+                          <Select.ValueText placeholder="Selecione" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                        <Select.Positioner>
+                          <Select.Content>
+                            {userTypes.items.map((userType) => (
+                              <Select.Item key={userType} item={userType}>
+                                {userType ? translateUserType(userType) : "Todos"}
+                                <Select.ItemIndicator />
+                              </Select.Item>
+                            ))}
+                          </Select.Content>
+                        </Select.Positioner>
                     </Select.Root>
                   </Box>
 
@@ -997,25 +1016,29 @@ function NotificationsPageContent() {
                         Tipo
                       </Text>
                       <Select.Root
-                        collection={createListCollection({
-                          items: Object.values(NotificationType).map((type) => ({
-                            label: translateType(type),
-                            value: type,
-                          })),
-                        })}
+                        collection={notificationTypes}
                         value={[formData.type]}
                         onValueChange={(e) => setFormData({ ...formData, type: e.value[0] as NotificationType })}
                       >
-                        <Select.Trigger>
-                          <Select.ValueText placeholder="Selecione" />
-                        </Select.Trigger>
-                        <Select.Content>
-                          {Object.values(NotificationType).map((type) => (
-                            <Select.Item key={type} item={{ label: translateType(type), value: type }}>
-                              {translateType(type)}
-                            </Select.Item>
-                          ))}
-                        </Select.Content>
+                        <Select.HiddenSelect />
+                        <Select.Control>
+                          <Select.Trigger>
+                            <Select.ValueText placeholder="Selecione" />
+                          </Select.Trigger>
+                          <Select.IndicatorGroup>
+                            <Select.Indicator />
+                          </Select.IndicatorGroup>
+                        </Select.Control>
+                          <Select.Positioner>
+                            <Select.Content>
+                              {notificationTypes.items.map((type) => (
+                                <Select.Item key={type} item={type}>
+                                  {translateType(type)}
+                                  <Select.ItemIndicator />
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Positioner>
                       </Select.Root>
                     </Box>
 
@@ -1024,25 +1047,29 @@ function NotificationsPageContent() {
                         Prioridade
                       </Text>
                       <Select.Root
-                        collection={createListCollection({
-                          items: Object.values(NotificationPriority).map((priority) => ({
-                            label: translatePriority(priority),
-                            value: priority,
-                          })),
-                        })}
+                        collection={notificationPriorities}
                         value={[formData.priority]}
                         onValueChange={(e) => setFormData({ ...formData, priority: e.value[0] as NotificationPriority })}
                       >
-                        <Select.Trigger>
-                          <Select.ValueText placeholder="Selecione" />
-                        </Select.Trigger>
-                        <Select.Content>
-                          {Object.values(NotificationPriority).map((priority) => (
-                            <Select.Item key={priority} item={{ label: translatePriority(priority), value: priority }}>
-                              {translatePriority(priority)}
-                            </Select.Item>
-                          ))}
-                        </Select.Content>
+                        <Select.HiddenSelect />
+                        <Select.Control>
+                          <Select.Trigger>
+                            <Select.ValueText placeholder="Selecione" />
+                          </Select.Trigger>
+                          <Select.IndicatorGroup>
+                            <Select.Indicator />
+                          </Select.IndicatorGroup>
+                        </Select.Control>
+                          <Select.Positioner>
+                            <Select.Content>
+                              {notificationPriorities.items.map((priority) => (
+                                <Select.Item key={priority} item={priority}>
+                                  {translatePriority(priority)}
+                                  <Select.ItemIndicator />
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Positioner>
                       </Select.Root>
                     </Box>
                   </Flex>
@@ -1052,34 +1079,29 @@ function NotificationsPageContent() {
                       Destinatários
                     </Text>
                     <Select.Root
-                      collection={createListCollection({
-                        items: [
-                          { label: "Todos", value: "" },
-                          ...Object.values(UserType).map((userType) => ({
-                            label: translateUserType(userType),
-                            value: userType,
-                          })),
-                        ],
-                      })}
+                      collection={userTypes}
                       value={[formData.user_type]}
                       onValueChange={(e) => setFormData({ ...formData, user_type: e.value[0] })}
                     >
-                      <Select.Trigger>
-                        <Select.ValueText placeholder="Selecione" />
-                      </Select.Trigger>
-                      <Select.Content>
-                        {[
-                          { label: "Todos", value: "" },
-                          ...Object.values(UserType).map((userType) => ({
-                            label: translateUserType(userType),
-                            value: userType,
-                          })),
-                        ].map((option) => (
-                          <Select.Item key={option.value} item={option}>
-                            {option.label}
-                          </Select.Item>
-                        ))}
-                      </Select.Content>
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger>
+                          <Select.ValueText placeholder="Selecione" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                        <Select.Positioner>
+                          <Select.Content>
+                            {userTypes.items.map((userType) => (
+                              <Select.Item key={userType} item={userType}>
+                                {userType ? translateUserType(userType) : "Todos"}
+                                <Select.ItemIndicator />
+                              </Select.Item>
+                            ))}
+                          </Select.Content>
+                        </Select.Positioner>
                     </Select.Root>
                   </Box>
 

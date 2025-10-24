@@ -3,7 +3,6 @@
 import {
   Badge,
   Box,
-  Button,
   Center,
   Container,
   DialogBackdrop,
@@ -366,10 +365,9 @@ export default function ManageSystemPage() {
   return (
     <Container maxW="container.xl" py={8}>
       <Box>
-        <Box mb={4} gap={2} display="flex">
-          <Button onClick={() => router.push('/manage-system/whatsapp')}>Whatsapps</Button>
-          <Button onClick={() => router.push('/manage-system/notifications')}>Notificações</Button>
-        </Box>
+        <Heading as="h1" size="xl" mb={6}>
+          Dashboard do Sistema
+        </Heading>
 
         <Box mb={8}>
           <Heading as="h2" size="md" mb={4} color="gray.700" _dark={{ color: "gray.300" }}>

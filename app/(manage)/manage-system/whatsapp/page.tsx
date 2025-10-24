@@ -2,17 +2,17 @@
 
 import { toaster } from "@/components/ui/toaster";
 import {
-  Badge,
-  Box,
-  Button,
-  Container,
-  Dialog,
-  Flex,
-  Heading,
-  Image,
-  Spinner,
-  Table,
-  Text,
+    Badge,
+    Box,
+    Button,
+    Container,
+    Dialog,
+    Flex,
+    Heading,
+    Image,
+    Spinner,
+    Table,
+    Text,
 } from "@chakra-ui/react";
 import { Suspense, useEffect, useState } from "react";
 import { FaPlus, FaWhatsapp } from "react-icons/fa";

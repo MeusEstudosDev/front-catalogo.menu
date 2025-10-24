@@ -17,12 +17,11 @@ import {
   Container,
   Dialog,
   Flex,
-  Heading,
   Input,
   InputGroup,
   Spinner,
   Table,
-  Text,
+  Text
 } from "@chakra-ui/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -352,20 +351,11 @@ function BusinessesPageContent() {
   };
 
   return (
-    <Container maxW="container.xl" py={8}>
+    <Container maxW="container.xl">
       <Box>
         {/* Cabeçalho */}
-        <Flex justify="space-between" align="center" mb={6}>
-          <Box>
-            <Heading as="h1" size="xl" mb={2}>
-              Empresas Cadastradas
-            </Heading>
-            <Text color="gray.600" _dark={{ color: "gray.400" }}>
-              Gerencie todas as empresas cadastradas no sistema
-            </Text>
-          </Box>
+        <Flex justify="flex-end" align="center" mb={6}>
           <Button
-            colorPalette="blue"
             onClick={() => setIsCreateModalOpen(true)}
           >
             <FaPlus />
@@ -376,10 +366,7 @@ function BusinessesPageContent() {
         {/* Busca e filtros */}
         <Flex gap={4} mb={6} flexWrap="wrap" align="end">
           <Box flex="1" minW="250px">
-            <Text fontSize="sm" mb={1} fontWeight="medium">
-              Buscar
-            </Text>
-            <InputGroup>
+            <InputGroup startAddon="Buscar">
               <Input
                 placeholder="Nome ou CNPJ..."
                 value={search}
@@ -390,79 +377,48 @@ function BusinessesPageContent() {
           </Box>
           
           <Box minW="120px">
-            <Text fontSize="sm" mb={1} fontWeight="medium">
-              Código
-            </Text>
-            <Input
-              type="number"
-              placeholder="Código..."
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-            />
+            <InputGroup startAddon="Código">
+              <Input
+                type="number"
+                placeholder="Código..."
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+              />
+            </InputGroup>
           </Box>
 
           <Box minW="150px">
-            <Text fontSize="sm" mb={1} fontWeight="medium">
-              Status
-            </Text>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              style={{
-                width: "100%",
-                height: "40px",
-                padding: "0 12px",
-                border: "1px solid var(--chakra-colors-border)",
-                borderRadius: "6px",
-                backgroundColor: "transparent",
-                color: "inherit",
-                fontSize: "14px",
-                outline: "none",
-              }}
-            >
-              <option value="">Todos</option>
-              {Object.values(BusinessStatus).map((status) => (
-                <option key={status} value={status}>
-                  {translateStatus(status)}
-                </option>
-              ))}
-            </select>
+            <InputGroup startAddon="Status">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{
+                  width: "100%",
+                  height: "40px",
+                  padding: "0 12px",
+                  border: "1px solid var(--chakra-colors-border)",
+                  borderRadius: "6px",
+                  backgroundColor: "transparent",
+                  color: "inherit",
+                  fontSize: "14px",
+                  outline: "none",
+                }}
+              >
+                <option value="">Todos</option>
+                {Object.values(BusinessStatus).map((status) => (
+                  <option key={status} value={status}>
+                    {translateStatus(status)}
+                  </option>
+                ))}
+              </select>
+            </InputGroup>
           </Box>
 
-          <Button colorPalette="blue" onClick={handleSearch} height="40px">
+          <Button onClick={handleSearch} height="40px">
             <FaSearch />
             Buscar
           </Button>
-
-          <Box minW="150px">
-            <Text fontSize="sm" mb={1} fontWeight="medium">
-              Itens por página
-            </Text>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPageNumber(1);
-              }}
-              style={{
-                width: "100%",
-                height: "40px",
-                padding: "0 12px",
-                border: "1px solid var(--chakra-colors-border)",
-                borderRadius: "6px",
-                backgroundColor: "transparent",
-                color: "inherit",
-                fontSize: "14px",
-                outline: "none",
-              }}
-            >
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-          </Box>
         </Flex>
 
         {/* Tabela */}
@@ -632,6 +588,32 @@ function BusinessesPageContent() {
               {Math.min(pageNumber * pageSize, total)} de {total} empresas
             </Text>
             <Flex gap={2}>
+              <Box>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPageNumber(1);
+                  }}
+                  style={{
+                    width: "100%",
+                    height: "40px",
+                    padding: "0 12px",
+                    border: "1px solid var(--chakra-colors-border)",
+                    borderRadius: "6px",
+                    backgroundColor: "transparent",
+                    color: "inherit",
+                    fontSize: "14px",
+                    outline: "none",
+                  }}
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </Box>
+
               <Button
                 size="sm"
                 variant="outline"
