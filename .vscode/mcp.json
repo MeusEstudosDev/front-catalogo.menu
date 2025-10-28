@@ -7,5 +7,19 @@
         "CONTEXT7_API_KEY": "ctx7sk-2ca1eaf4-ec1b-4d2e-8d32-eb5dccebc223"
       }
     },
+    "chakra-ui": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@chakra-ui/react-mcp"
+      ]
+    },
+    "next-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "next-devtools-mcp@latest"
+      ]
+    }
   }
 }

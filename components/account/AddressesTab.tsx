@@ -1,7 +1,15 @@
 "use client";
 
 import { toaster } from "@/components/ui/toaster";
-import { Box, Button, Dialog, Input, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  createListCollection,
+  Dialog,
+  Input,
+  Select,
+  Text
+} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import { GoogleMap } from "./GoogleMap";
@@ -37,6 +45,15 @@ export function AddressesTab() {
   // Estados para controlar as etapas dos modais
   const [createAddressStep, setCreateAddressStep] = useState<1 | 2>(1);
   const [editAddressStep, setEditAddressStep] = useState<1 | 2>(1);
+
+  // Collection para o select de tipo de endereço
+  const addressTypeCollection = createListCollection({
+    items: [
+      { value: "RESIDENTIAL", label: "Residencial" },
+      { value: "COMMERCIAL", label: "Comercial" },
+      { value: "OTHER", label: "Outro" },
+    ],
+  });
 
   useEffect(() => {
     fetchAddresses();
@@ -477,14 +494,15 @@ export function AddressesTab() {
       mx="auto"
       px={{ base: 4, md: 0 }}
     >
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Text fontSize="xl" fontWeight="bold">
-          Meus Endereços
-        </Text>
-        <Button colorPalette="blue" onClick={openCreateAddressModal} size="sm">
-          <FaPlus />
-          Adicionar Endereço
-        </Button>
+      <Box display="flex" justifyContent="flex-end" alignItems="center">
+        {
+          addresses.length !== 0 && (
+            <Button onClick={openCreateAddressModal}>
+              <FaPlus />
+              Adicionar Endereço
+            </Button>
+          )
+        }
       </Box>
 
       <Box>
@@ -498,17 +516,13 @@ export function AddressesTab() {
             borderColor="gray.300"
             borderRadius="md"
           >
-            <Text fontSize="lg" color="gray.500" mb={2}>
-              Nenhum endereço encontrado
+            <Text color="gray.500">
+              Nenhum endereço cadastrado.
             </Text>
             <Text fontSize="sm" color="gray.400" mb={4}>
               Adicione seu primeiro endereço para começar
             </Text>
-            <Button
-              colorPalette="blue"
-              onClick={openCreateAddressModal}
-              size="sm"
-            >
+            <Button onClick={openCreateAddressModal}>
               <FaPlus />
               Adicionar Endereço
             </Button>
@@ -533,7 +547,6 @@ export function AddressesTab() {
                 display="flex"
                 flexDirection="column"
                 gap={3}
-                bg="white"
                 _hover={{ borderColor: "blue.300" }}
                 transition="border-color 0.2s"
                 minH="200px"
@@ -633,26 +646,38 @@ export function AddressesTab() {
                     <Text fontSize="sm" mb={1}>
                       Tipo
                     </Text>
-                    <select
-                      value={newAddress.type}
-                      onChange={(e) =>
+                    <Select.Root
+                      value={[newAddress.type]}
+                      onValueChange={(e) =>
                         setNewAddress({
                           ...newAddress,
-                          type: e.target.value as any,
+                          type: e.value[0] as any,
                         })
                       }
-                      style={{
-                        width: "100%",
-                        padding: "8px 12px",
-                        border: "1px solid #E2E8F0",
-                        borderRadius: "6px",
-                        fontSize: "14px",
-                      }}
+                      size="md"
+                      collection={addressTypeCollection}
+                      positioning={{ sameWidth: true }}
                     >
-                      <option value="RESIDENTIAL">Residencial</option>
-                      <option value="COMMERCIAL">Comercial</option>
-                      <option value="OTHER">Outro</option>
-                    </select>
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger cursor="pointer">
+                          <Select.ValueText placeholder="Selecione o tipo" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                      <Select.Positioner zIndex={2000}>
+                        <Select.Content>
+                          {addressTypeCollection.items.map((item) => (
+                            <Select.Item cursor="pointer" item={item} key={item.value}>
+                              {item.label}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Select.Root>
                   </Box>
 
                   <Box>
@@ -702,13 +727,6 @@ export function AddressesTab() {
                     <Box>
                       <Text fontSize="sm" mb={1}>
                         Rua/Logradouro *
-                        {(!newAddress.cep ||
-                          newAddress.cep.length < 8 ||
-                          isLoadingCep) && (
-                          <Text as="span" fontSize="xs" color="gray.500" ml={2}>
-                            (Digite o CEP primeiro)
-                          </Text>
-                        )}
                       </Text>
                       <Input
                         placeholder="Nome da rua"
@@ -724,25 +742,11 @@ export function AddressesTab() {
                           newAddress.cep.length < 8 ||
                           isLoadingCep
                         }
-                        bg={
-                          !newAddress.cep ||
-                          newAddress.cep.length < 8 ||
-                          isLoadingCep
-                            ? "gray.100"
-                            : "white"
-                        }
                       />
                     </Box>
                     <Box>
                       <Text fontSize="sm" mb={1}>
                         Número *
-                        {(!newAddress.cep ||
-                          newAddress.cep.length < 8 ||
-                          isLoadingCep) && (
-                          <Text as="span" fontSize="xs" color="gray.500" ml={2}>
-                            (Digite o CEP primeiro)
-                          </Text>
-                        )}
                       </Text>
                       <Input
                         placeholder="123"
@@ -757,13 +761,6 @@ export function AddressesTab() {
                           !newAddress.cep ||
                           newAddress.cep.length < 8 ||
                           isLoadingCep
-                        }
-                        bg={
-                          !newAddress.cep ||
-                          newAddress.cep.length < 8 ||
-                          isLoadingCep
-                            ? "gray.100"
-                            : "white"
                         }
                       />
                     </Box>
@@ -787,26 +784,12 @@ export function AddressesTab() {
                         newAddress.cep.length < 8 ||
                         isLoadingCep
                       }
-                      bg={
-                        !newAddress.cep ||
-                        newAddress.cep.length < 8 ||
-                        isLoadingCep
-                          ? "gray.100"
-                          : "white"
-                      }
                     />
                   </Box>
 
                   <Box>
                     <Text fontSize="sm" mb={1}>
                       Bairro/Distrito *
-                      {(!newAddress.cep ||
-                        newAddress.cep.length < 8 ||
-                        isLoadingCep) && (
-                        <Text as="span" fontSize="xs" color="gray.500" ml={2}>
-                          (Digite o CEP primeiro)
-                        </Text>
-                      )}
                     </Text>
                     <Input
                       placeholder="Nome do bairro"
@@ -822,13 +805,6 @@ export function AddressesTab() {
                         newAddress.cep.length < 8 ||
                         isLoadingCep
                       }
-                      bg={
-                        !newAddress.cep ||
-                        newAddress.cep.length < 8 ||
-                        isLoadingCep
-                          ? "gray.100"
-                          : "white"
-                      }
                     />
                   </Box>
 
@@ -836,13 +812,6 @@ export function AddressesTab() {
                     <Box>
                       <Text fontSize="sm" mb={1}>
                         Cidade *
-                        {(!newAddress.cep ||
-                          newAddress.cep.length < 8 ||
-                          isLoadingCep) && (
-                          <Text as="span" fontSize="xs" color="gray.500" ml={2}>
-                            (Digite o CEP primeiro)
-                          </Text>
-                        )}
                       </Text>
                       <Input
                         placeholder="Nome da cidade"
@@ -858,25 +827,11 @@ export function AddressesTab() {
                           newAddress.cep.length < 8 ||
                           isLoadingCep
                         }
-                        bg={
-                          !newAddress.cep ||
-                          newAddress.cep.length < 8 ||
-                          isLoadingCep
-                            ? "gray.100"
-                            : "white"
-                        }
                       />
                     </Box>
                     <Box>
                       <Text fontSize="sm" mb={1}>
                         Estado *
-                        {(!newAddress.cep ||
-                          newAddress.cep.length < 8 ||
-                          isLoadingCep) && (
-                          <Text as="span" fontSize="xs" color="gray.500" ml={2}>
-                            (Digite o CEP primeiro)
-                          </Text>
-                        )}
                       </Text>
                       <Input
                         placeholder="SP"
@@ -892,13 +847,6 @@ export function AddressesTab() {
                           !newAddress.cep ||
                           newAddress.cep.length < 8 ||
                           isLoadingCep
-                        }
-                        bg={
-                          !newAddress.cep ||
-                          newAddress.cep.length < 8 ||
-                          isLoadingCep
-                            ? "gray.100"
-                            : "white"
                         }
                       />
                     </Box>
@@ -954,9 +902,8 @@ export function AddressesTab() {
                       />
                       <Box
                         p={3}
-                        bg="gray.50"
                         borderRadius="md"
-                        border="1px solid"
+                        border="1px dashed"
                         borderColor="gray.200"
                       >
                         <Text fontSize="xs" fontWeight="semibold" mb={1}>
@@ -989,7 +936,6 @@ export function AddressesTab() {
                     Cancelar
                   </Button>
                   <Button
-                    colorPalette="blue"
                     onClick={() => handleNextToMapStep(false)}
                     loading={isLoadingGeocode}
                   >
@@ -1005,7 +951,6 @@ export function AddressesTab() {
                     ← Voltar
                   </Button>
                   <Button
-                    colorPalette="green"
                     onClick={addAddress}
                     loading={isAddingAddress}
                   >
@@ -1019,9 +964,387 @@ export function AddressesTab() {
         </Dialog.Positioner>
       </Dialog.Root>
 
-      {/* Modal de Editar Endereço - Similar ao de criar, mas com editingAddress */}
-      {/* Por brevidade, o modal de editar segue a mesma estrutura do criar */}
-      {/* Você pode ver o código completo no arquivo */}
+      {/* Modal de Editar Endereço */}
+      <Dialog.Root
+        open={isEditAddressModalOpen}
+        onOpenChange={(details) => {
+          if (!details.open) {
+            closeEditAddressModal();
+          }
+        }}
+      >
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content maxW="600px">
+            <Dialog.Header>
+              <Dialog.Title>
+                Editar Endereço - Etapa {editAddressStep} de 2
+              </Dialog.Title>
+            </Dialog.Header>
+            <Dialog.Body>
+              {editAddressStep === 1 ? (
+                // ETAPA 1: Formulário de endereço
+                <Box display="flex" flexDir="column" gap={4}>
+                  <Box>
+                    <Text fontSize="sm" mb={1}>
+                      Tipo
+                    </Text>
+                    <Select.Root
+                      value={[editingAddress?.type || "RESIDENTIAL"]}
+                      onValueChange={(e) =>
+                        setEditingAddress(
+                          editingAddress
+                            ? {
+                                ...editingAddress,
+                                type: e.value[0] as any,
+                              }
+                            : null
+                        )
+                      }
+                      size="md"
+                      collection={addressTypeCollection}
+                      positioning={{ sameWidth: true }}
+                    >
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger cursor="pointer">
+                          <Select.ValueText placeholder="Selecione o tipo" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                      <Select.Positioner zIndex={2000}>
+                        <Select.Content>
+                          {addressTypeCollection.items.map((item) => (
+                            <Select.Item cursor="pointer" item={item} key={item.value}>
+                              {item.label}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Select.Root>
+                  </Box>
+
+                  <Box>
+                    <Text fontSize="sm" mb={1}>
+                      CEP *
+                    </Text>
+                    <Box position="relative">
+                      <Input
+                        placeholder="00000-000"
+                        value={formatCep(editingAddress?.cep || "")}
+                        onChange={(e) => {
+                          const formatted = formatCep(e.target.value);
+                          const clean = removeMask(e.target.value);
+                          setEditingAddress(
+                            editingAddress
+                              ? {
+                                  ...editingAddress,
+                                  cep: clean,
+                                }
+                              : null
+                          );
+
+                          if (clean.length === 8) {
+                            handleCepSearch(clean, true);
+                          } else {
+                            setCepError("");
+                          }
+                        }}
+                        maxLength={9}
+                        borderColor={cepError ? "red.500" : "gray.200"}
+                      />
+                      {isLoadingCep && (
+                        <Text fontSize="xs" color="blue.500" mt={1}>
+                          Buscando CEP...
+                        </Text>
+                      )}
+                      {isLoadingGeocode && (
+                        <Text fontSize="xs" color="blue.500" mt={1}>
+                          Obtendo coordenadas...
+                        </Text>
+                      )}
+                      {cepError && (
+                        <Text fontSize="xs" color="red.500" mt={1}>
+                          {cepError}
+                        </Text>
+                      )}
+                    </Box>
+                  </Box>
+
+                  <Box display="grid" gridTemplateColumns="3fr 1fr" gap={2}>
+                    <Box>
+                      <Text fontSize="sm" mb={1}>
+                        Rua/Logradouro *
+                      </Text>
+                      <Input
+                        placeholder="Nome da rua"
+                        value={editingAddress?.street || ""}
+                        onChange={(e) => {
+                          setEditingAddress(
+                            editingAddress
+                              ? {
+                                  ...editingAddress,
+                                  street: e.target.value,
+                                }
+                              : null
+                          );
+                        }}
+                        disabled={
+                          !editingAddress?.cep ||
+                          editingAddress.cep.length < 8 ||
+                          isLoadingCep
+                        }
+                      />
+                    </Box>
+                    <Box>
+                      <Text fontSize="sm" mb={1}>
+                        Número *
+                      </Text>
+                      <Input
+                        placeholder="123"
+                        value={editingAddress?.number || ""}
+                        onChange={(e) => {
+                          setEditingAddress(
+                            editingAddress
+                              ? {
+                                  ...editingAddress,
+                                  number: e.target.value,
+                                }
+                              : null
+                          );
+                        }}
+                        disabled={
+                          !editingAddress?.cep ||
+                          editingAddress.cep.length < 8 ||
+                          isLoadingCep
+                        }
+                      />
+                    </Box>
+                  </Box>
+
+                  <Box>
+                    <Text fontSize="sm" mb={1}>
+                      Complemento
+                    </Text>
+                    <Input
+                      placeholder="Apartamento, bloco, etc."
+                      value={editingAddress?.complement || ""}
+                      onChange={(e) => {
+                        setEditingAddress(
+                          editingAddress
+                            ? {
+                                ...editingAddress,
+                                complement: e.target.value,
+                              }
+                            : null
+                        );
+                      }}
+                      disabled={
+                        !editingAddress?.cep ||
+                        editingAddress.cep.length < 8 ||
+                        isLoadingCep
+                      }
+                    />
+                  </Box>
+
+                  <Box>
+                    <Text fontSize="sm" mb={1}>
+                      Bairro/Distrito *
+                    </Text>
+                    <Input
+                      placeholder="Nome do bairro"
+                      value={editingAddress?.district || ""}
+                      onChange={(e) => {
+                        setEditingAddress(
+                          editingAddress
+                            ? {
+                                ...editingAddress,
+                                district: e.target.value,
+                              }
+                            : null
+                        );
+                      }}
+                      disabled={
+                        !editingAddress?.cep ||
+                        editingAddress.cep.length < 8 ||
+                        isLoadingCep
+                      }
+                    />
+                  </Box>
+
+                  <Box display="grid" gridTemplateColumns="2fr 1fr" gap={2}>
+                    <Box>
+                      <Text fontSize="sm" mb={1}>
+                        Cidade *
+                      </Text>
+                      <Input
+                        placeholder="Nome da cidade"
+                        value={editingAddress?.city || ""}
+                        onChange={(e) => {
+                          setEditingAddress(
+                            editingAddress
+                              ? {
+                                  ...editingAddress,
+                                  city: e.target.value,
+                                }
+                              : null
+                          );
+                        }}
+                        disabled={
+                          !editingAddress?.cep ||
+                          editingAddress.cep.length < 8 ||
+                          isLoadingCep
+                        }
+                      />
+                    </Box>
+                    <Box>
+                      <Text fontSize="sm" mb={1}>
+                        Estado *
+                      </Text>
+                      <Input
+                        placeholder="SP"
+                        value={editingAddress?.state || ""}
+                        onChange={(e) => {
+                          setEditingAddress(
+                            editingAddress
+                              ? {
+                                  ...editingAddress,
+                                  state: e.target.value.toUpperCase(),
+                                }
+                              : null
+                          );
+                        }}
+                        maxLength={2}
+                        disabled={
+                          !editingAddress?.cep ||
+                          editingAddress.cep.length < 8 ||
+                          isLoadingCep
+                        }
+                      />
+                    </Box>
+                  </Box>
+
+                  <Box>
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        fontSize: "14px",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={editingAddress?.primary || false}
+                        onChange={(e) =>
+                          setEditingAddress(
+                            editingAddress
+                              ? {
+                                  ...editingAddress,
+                                  primary: e.target.checked,
+                                }
+                              : null
+                          )
+                        }
+                      />
+                      Endereço Principal
+                    </label>
+                  </Box>
+                </Box>
+              ) : (
+                // ETAPA 2: Mapa para ajustar localização
+                <Box display="flex" flexDir="column" gap={4}>
+                  <Text fontSize="sm" fontWeight="semibold">
+                    Confirme a Localização no Mapa
+                  </Text>
+                  <Text fontSize="xs" color="gray.600">
+                    Clique ou arraste o marcador para ajustar a localização exata
+                    do endereço
+                  </Text>
+
+                  {editingAddress?.latitude && editingAddress?.longitude && (
+                    <>
+                      <GoogleMap
+                        latitude={editingAddress.latitude}
+                        longitude={editingAddress.longitude}
+                        onLocationChange={(lat, lng) => {
+                          setEditingAddress(
+                            editingAddress
+                              ? {
+                                  ...editingAddress,
+                                  latitude: lat,
+                                  longitude: lng,
+                                }
+                              : null
+                          );
+                        }}
+                        height="400px"
+                      />
+                      <Box
+                        p={3}
+                        borderRadius="md"
+                        border="1px dashed"
+                        borderColor="gray.200"
+                      >
+                        <Text fontSize="xs" fontWeight="semibold" mb={1}>
+                          Endereço:
+                        </Text>
+                        <Text fontSize="sm">
+                          {editingAddress.street}, {editingAddress.number}
+                          {editingAddress.complement &&
+                            ` - ${editingAddress.complement}`}
+                        </Text>
+                        <Text fontSize="sm">
+                          {editingAddress.district} - {editingAddress.city}/
+                          {editingAddress.state}
+                        </Text>
+                        <Text fontSize="sm">
+                          CEP: {formatCep(editingAddress.cep)}
+                        </Text>
+                        <Text fontSize="xs" color="gray.500" mt={2}>
+                          Coordenadas: {editingAddress.latitude.toFixed(6)},{" "}
+                          {editingAddress.longitude.toFixed(6)}
+                        </Text>
+                      </Box>
+                    </>
+                  )}
+                </Box>
+              )}
+            </Dialog.Body>
+            <Dialog.Footer>
+              {editAddressStep === 1 ? (
+                <>
+                  <Button variant="outline" onClick={closeEditAddressModal}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={() => handleNextToMapStep(true)}
+                    loading={isLoadingGeocode}
+                  >
+                    Próximo →
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditAddressStep(1)}
+                  >
+                    ← Voltar
+                  </Button>
+                  <Button onClick={updateAddress} loading={isAddingAddress}>
+                    Salvar Alterações
+                  </Button>
+                </>
+              )}
+            </Dialog.Footer>
+            <Dialog.CloseTrigger />
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Dialog.Root>
 
       {/* Modal de Deletar Endereço */}
       <Dialog.Root
@@ -1030,7 +1353,7 @@ export function AddressesTab() {
       >
         <Dialog.Backdrop />
         <Dialog.Positioner>
-          <Dialog.Content>
+          <Dialog.Content cursor="default">
             <Dialog.Header>
               <Dialog.Title>Confirmar Exclusão</Dialog.Title>
             </Dialog.Header>
@@ -1040,7 +1363,7 @@ export function AddressesTab() {
                 ser desfeita.
               </Text>
               {addressToDelete && (
-                <Box mt={3} p={3} bg="gray.50" borderRadius="md">
+                <Box mt={3} p={3} border="1px dashed" borderRadius="md">
                   <Text fontSize="sm" fontWeight="bold">
                     {addressToDelete.street}, {addressToDelete.number}
                   </Text>

@@ -19,6 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { FaEdit } from "react-icons/fa";
+import { FaRegCopy } from "react-icons/fa6";
 import { IBusinessDetail } from "./types";
 
 interface BasicInfoTabProps {
@@ -101,13 +102,52 @@ export function BasicInfoTab({ business, onBusinessUpdate }: BasicInfoTabProps) 
   return (
     <Box display="flex" flexDir="column" gap={6} p={6}>
       <Box display="flex" flexDir={{ base: "column", md: "row" }} gap={4}>
-        <InputGroup startAddon="Código">
-          <Input value={business.code} disabled readOnly />
+        <InputGroup
+          cursor="default"
+          startAddon="Código"
+          endElement={
+            <Box
+              as="button"
+              onClick={async (e) => {
+                e.preventDefault();
+                if (business.code == null) return;
+                try {
+                  await navigator.clipboard.writeText(String(business.code));
+                  toaster.success({
+                    title: "Copiado!",
+                    description:
+                      "Código copiado para a área de transferência.",
+                  });
+                } catch {
+                  toaster.error({
+                    title: "Falha ao copiar",
+                    description: "Não foi possível copiar o código.",
+                  });
+                }
+              }}
+              aria-label="Copiar código"
+              cursor="pointer"
+              bg="transparent"
+              border="none"
+              _hover={{ color: "accent.solid" }}
+            >
+              <FaRegCopy />
+            </Box>
+          }>
+          <Input
+            cursor="default"
+            value={business.code} 
+            disabled 
+            readOnly 
+          />
         </InputGroup>
 
-        <InputGroup startAddon="Cadastrado em">
+        <InputGroup
+          cursor="default"
+          startAddon="Cadastrado em">
           <Input
             value={formatDate(business.created_at)}
+            cursor="default"
             disabled
             readOnly
           />
@@ -117,7 +157,39 @@ export function BasicInfoTab({ business, onBusinessUpdate }: BasicInfoTabProps) 
 
 
       <Box display="flex" flexDir={{ base: "column", md: "row" }} gap={4}>
-        <InputGroup startAddon="CNPJ">
+        <InputGroup
+          cursor="default"
+          startAddon="CNPJ"
+          endElement={
+            <Box
+              as="button"
+              onClick={async (e) => {
+                e.preventDefault();
+                if (formData.cnpj == null) return;
+                try {
+                  await navigator.clipboard.writeText(String(formData.cnpj));
+                  toaster.success({
+                    title: "Copiado!",
+                    description:
+                      "CNPJ copiado para a área de transferência.",
+                  });
+                } catch {
+                  toaster.error({
+                    title: "Falha ao copiar",
+                    description: "Não foi possível copiar o CNPJ.",
+                  });
+                }
+              }}
+              aria-label="Copiar CNPJ"
+              cursor="pointer"
+              bg="transparent"
+              border="none"
+              _hover={{ color: "accent.solid" }}
+            >
+              <FaRegCopy />
+            </Box>
+          }
+        >
           <Input
             value={formatCnpj(formData.cnpj)}
             onChange={(e) => {
@@ -128,7 +200,39 @@ export function BasicInfoTab({ business, onBusinessUpdate }: BasicInfoTabProps) 
           />
         </InputGroup>
 
-        <InputGroup startAddon="Nome">
+        <InputGroup
+          cursor="default"
+          startAddon="Nome"
+          endElement={
+            <Box
+              as="button"
+              onClick={async (e) => {
+                e.preventDefault();
+                if (formData.name == null) return;
+                try {
+                  await navigator.clipboard.writeText(String(formData.name));
+                  toaster.success({
+                    title: "Copiado!",
+                    description:
+                      "Nome copiado para a área de transferência.",
+                  });
+                } catch {
+                  toaster.error({
+                    title: "Falha ao copiar",
+                    description: "Não foi possível copiar o Nome.",
+                  });
+                }
+              }}
+              aria-label="Copiar Nome"
+              cursor="pointer"
+              bg="transparent"
+              border="none"
+              _hover={{ color: "accent.solid" }}
+            >
+              <FaRegCopy />
+            </Box>
+          }
+        >
           <Input
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -146,8 +250,8 @@ export function BasicInfoTab({ business, onBusinessUpdate }: BasicInfoTabProps) 
           >
             <Select.HiddenSelect />
             <Select.Control>
-              <Select.Trigger>
-                <Select.ValueText placeholder="Selecione o status" />
+              <Select.Trigger cursor="pointer">
+                <Select.ValueText  placeholder="Selecione o status" />
               </Select.Trigger>
               <Select.IndicatorGroup>
                 <Select.Indicator />
@@ -157,7 +261,7 @@ export function BasicInfoTab({ business, onBusinessUpdate }: BasicInfoTabProps) 
               <Select.Positioner>
                 <Select.Content>
                   {frameworks.items.map((framework) => (
-                    <Select.Item item={framework} key={framework}>
+                    <Select.Item  cursor="pointer" item={framework} key={framework}>
                       {translateStatus(framework)}
                       <Select.ItemIndicator />
                     </Select.Item>
@@ -169,7 +273,39 @@ export function BasicInfoTab({ business, onBusinessUpdate }: BasicInfoTabProps) 
         </Box>
       </Box>
 
-      <InputGroup startAddon="Website">
+      <InputGroup
+        cursor="default"
+        startAddon="Website"
+        endElement={
+          <Box
+            as="button"
+            onClick={async (e) => {
+              e.preventDefault();
+              if (formData.website == null) return;
+              try {
+                await navigator.clipboard.writeText(String(formData.website));
+                toaster.success({
+                  title: "Copiado!",
+                  description:
+                    "Website copiado para a área de transferência.",
+                });
+              } catch {
+                toaster.error({
+                  title: "Falha ao copiar",
+                  description: "Não foi possível copiar o Website.",
+                });
+              }
+            }}
+            aria-label="Copiar Website"
+            cursor="pointer"
+            bg="transparent"
+            border="none"
+            _hover={{ color: "accent.solid" }}
+          >
+            <FaRegCopy />
+          </Box>
+        }
+      >
         <Input
           value={formData.website}
           onChange={(e) => setFormData({ ...formData, website: e.target.value })}
@@ -181,7 +317,6 @@ export function BasicInfoTab({ business, onBusinessUpdate }: BasicInfoTabProps) 
         <Button
           onClick={handleSubmit}
           loading={isSubmitting}
-          colorPalette="blue"
           alignSelf={{ base: "stretch", md: "end" }}
           w={{ base: "100%", md: "200px" }}
           display="flex"

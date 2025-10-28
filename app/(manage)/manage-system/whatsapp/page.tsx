@@ -2,17 +2,16 @@
 
 import { toaster } from "@/components/ui/toaster";
 import {
-    Badge,
-    Box,
-    Button,
-    Container,
-    Dialog,
-    Flex,
-    Heading,
-    Image,
-    Spinner,
-    Table,
-    Text,
+  Badge,
+  Box,
+  Button,
+  Container,
+  Dialog,
+  Flex,
+  Image,
+  Spinner,
+  Table,
+  Text
 } from "@chakra-ui/react";
 import { Suspense, useEffect, useState } from "react";
 import { FaPlus, FaWhatsapp } from "react-icons/fa";
@@ -263,17 +262,9 @@ function WhatsAppPageContent() {
   }, [qrCheckInterval]);
 
   return (
-    <Container maxW="container.xl" py={8}>
+    <Container maxW="container.xl">
       {/* Cabeçalho */}
-      <Flex justify="space-between" align="center" mb={6}>
-        <Box>
-          <Heading size="lg" mb={2}>
-            Gerenciamento WhatsApp
-          </Heading>
-          <Text color="gray.600">
-            Gerencie as conexões do WhatsApp do seu negócio
-          </Text>
-        </Box>
+      <Flex justify="flex-end" align="center" mb={6}>
         <Flex gap={3}>
           <Button
             colorPalette="gray"
@@ -283,7 +274,7 @@ function WhatsAppPageContent() {
             <MdRefresh />
             Atualizar
           </Button>
-          <Button colorPalette="green" onClick={openConnectModal}>
+          <Button onClick={openConnectModal}>
             <FaPlus />
             Conectar WhatsApp
           </Button>

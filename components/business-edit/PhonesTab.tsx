@@ -1,7 +1,16 @@
 "use client";
 
 import { toaster } from "@/components/ui/toaster";
-import { Box, Button, Dialog, Input, PinInput, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  createListCollection,
+  Dialog,
+  Input,
+  PinInput,
+  Select,
+  Text
+} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { FaCheckCircle, FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import { GoAlert } from "react-icons/go";
@@ -52,6 +61,23 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
     const brazil = countryOptions.splice(brazilIndex, 1)[0];
     countryOptions.unshift(brazil);
   }
+
+  // Collections para os selects
+  const phoneTypeCollection = createListCollection({
+    items: [
+      { value: "PERSONAL", label: "Pessoal" },
+      { value: "RESIDENTIAL", label: "Residencial" },
+      { value: "COMMERCIAL", label: "Comercial" },
+      { value: "OTHER", label: "Outro" },
+    ],
+  });
+
+  const countryCollection = createListCollection({
+    items: countryOptions.map((country) => ({
+      value: country.dialCode,
+      label: `${country.flag} ${country.dialCode} ${country.name}`,
+    })),
+  });
 
   useEffect(() => {
     fetchPhones();
@@ -350,30 +376,35 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
 
   return (
     <Box display="flex" flexDir="column" gap={4} w="100%" px={{ base: 4, md: 0 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Text fontSize="xl" fontWeight="bold">
-          Telefones da Empresa
-        </Text>
-        <Button
-          onClick={() => setIsCreateModalOpen(true)}
-          colorPalette="blue"
-          size="sm"
-        >
-          <FaPlus />
-          Adicionar Telefone
-        </Button>
+      <Box display="flex" justifyContent="flex-end" alignItems="center">
+        {
+          phones.length !== 0 && (
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              <FaPlus />
+              Adicionar Telefone
+            </Button>
+          )
+        }
       </Box>
 
       {isLoading ? (
         <Text>Carregando telefones...</Text>
       ) : phones.length === 0 ? (
-        <Box textAlign="center" py={8}>
+        <Box
+            textAlign="center"
+            py={8}
+            border="1px dashed"
+            borderColor="gray.300"
+            borderRadius="md"
+          >
           <Text color="gray.500">Nenhum telefone cadastrado.</Text>
+            <Text fontSize="sm" color="gray.400" mb={4}>
+              Adicione seu primeiro telefone para começar
+            </Text>
           <Button
             onClick={() => setIsCreateModalOpen(true)}
-            colorPalette="blue"
-            size="sm"
-            mt={4}
           >
             Adicionar Primeiro Telefone
           </Button>
@@ -499,7 +530,7 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
         onOpenChange={(e) => !e.open && setIsCreateModalOpen(false)}
       >
         <Dialog.Backdrop />
-        <Dialog.Positioner>
+        <Dialog.Positioner cursor="default">
           <Dialog.Content>
             <Dialog.Header>
               <Dialog.Title>Adicionar Telefone</Dialog.Title>
@@ -507,72 +538,78 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
             <Dialog.Body>
               <Box display="flex" flexDir="column" gap={4}>
                 <Box>
-                  <Text fontSize="sm" mb={1}>
-                    Tipo
-                  </Text>
-                  <select
-                    value={newPhone.type}
-                    onChange={(e) =>
-                      setNewPhone({
-                        ...newPhone,
-                        type: e.target.value as any,
-                      })
-                    }
-                    style={{
-                      width: "100%",
-                      height: "40px",
-                      padding: "0 12px",
-                      border: "1px solid var(--chakra-colors-border)",
-                      borderRadius: "6px",
-                      backgroundColor: "transparent",
-                      color: "inherit",
-                      fontSize: "14px",
-                    }}
-                  >
-                    <option value="PERSONAL">Pessoal</option>
-                    <option value="RESIDENTIAL">Residencial</option>
-                    <option value="COMMERCIAL">Comercial</option>
-                    <option value="OTHER">Outro</option>
-                  </select>
+                    <Select.Root
+                      value={[newPhone.type]}
+                      onValueChange={(e) =>
+                        setNewPhone({
+                          ...newPhone,
+                          type: e.value[0] as any,
+                        })
+                      }
+                      size="md"
+                      collection={phoneTypeCollection}
+                      positioning={{ sameWidth: true }}
+                    >
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger cursor="pointer">
+                          <Select.ValueText placeholder="Selecione o tipo" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                      <Select.Positioner zIndex={2000}>
+                        <Select.Content>
+                          {phoneTypeCollection.items.map((item) => (
+                            <Select.Item cursor="pointer" item={item} key={item.value}>
+                              {item.label}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Select.Root>
                 </Box>
                 <Box>
-                  <Text fontSize="sm" mb={1}>
-                    País
-                  </Text>
-                  <select
-                    value={newPhone.country_code}
-                    onChange={(e) =>
-                      setNewPhone({ ...newPhone, country_code: e.target.value })
-                    }
-                    style={{
-                      width: "100%",
-                      height: "40px",
-                      padding: "0 12px",
-                      border: "1px solid var(--chakra-colors-border)",
-                      borderRadius: "6px",
-                      backgroundColor: "transparent",
-                      color: "inherit",
-                      fontSize: "14px",
-                    }}
-                  >
-                    {countryOptions.map((country) => (
-                      <option key={country.code} value={country.dialCode}>
-                        {country.flag} {country.dialCode} {country.name}
-                      </option>
-                    ))}
-                  </select>
+                    <Select.Root
+                      value={[newPhone.country_code]}
+                      onValueChange={(e) =>
+                        setNewPhone({ ...newPhone, country_code: e.value[0] })
+                      }
+                      size="md"
+                      collection={countryCollection}
+                      positioning={{ sameWidth: true }}
+                    >
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger cursor="pointer">
+                          <Select.ValueText placeholder="Selecione o país" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                      <Select.Positioner zIndex={2000}>
+                        <Select.Content>
+                          {countryCollection.items.map((item) => (
+                            <Select.Item cursor="pointer" item={item} key={item.value}>
+                              {item.label}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Select.Root>
                 </Box>
                 <Box>
-                  <Text fontSize="sm" mb={1}>
-                    Número
-                  </Text>
-                  <Input
-                    placeholder="(99) 99999-9999"
-                    value={formatPhone(newPhone.number)}
-                    onChange={(e) =>
-                      setNewPhone({ ...newPhone, number: e.target.value })
-                    }
-                  />
+                    <Input
+                      placeholder="(99) 99999-9999"
+                      value={formatPhone(newPhone.number)}
+                      onChange={(e) =>
+                        setNewPhone({ ...newPhone, number: e.target.value })
+                      }
+                    />
                 </Box>
               </Box>
             </Dialog.Body>
@@ -584,7 +621,6 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
                 Cancelar
               </Button>
               <Button
-                colorPalette="blue"
                 onClick={handleCreate}
                 loading={isSubmitting}
               >
@@ -607,7 +643,7 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
         }}
       >
         <Dialog.Backdrop />
-        <Dialog.Positioner>
+        <Dialog.Positioner cursor="default">
           <Dialog.Content>
             <Dialog.Header>
               <Dialog.Title>Editar Telefone</Dialog.Title>
@@ -616,38 +652,74 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
               {editingPhone && (
                 <Box display="flex" flexDir="column" gap={4}>
                   <Box>
-                    <Text fontSize="sm" mb={1}>
-                      Tipo
-                    </Text>
-                    <select
-                      value={editingPhone.type}
-                      onChange={(e) =>
+                    <Select.Root
+                      value={[editingPhone.type]}
+                      onValueChange={(e) =>
                         setEditingPhone({
                           ...editingPhone,
-                          type: e.target.value as any,
+                          type: e.value[0] as any,
                         })
                       }
-                      style={{
-                        width: "100%",
-                        height: "40px",
-                        padding: "0 12px",
-                        border: "1px solid var(--chakra-colors-border)",
-                        borderRadius: "6px",
-                        backgroundColor: "transparent",
-                        color: "inherit",
-                        fontSize: "14px",
-                      }}
+                      size="md"
+                      collection={phoneTypeCollection}
+                      positioning={{ sameWidth: true }}
                     >
-                      <option value="PERSONAL">Pessoal</option>
-                      <option value="RESIDENTIAL">Residencial</option>
-                      <option value="COMMERCIAL">Comercial</option>
-                      <option value="OTHER">Outro</option>
-                    </select>
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger cursor="pointer">
+                          <Select.ValueText placeholder="Selecione o tipo" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                      <Select.Positioner zIndex={2000}>
+                        <Select.Content>
+                          {phoneTypeCollection.items.map((item) => (
+                            <Select.Item cursor="pointer" item={item} key={item.value}>
+                              {item.label}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Select.Root>
                   </Box>
                   <Box>
-                    <Text fontSize="sm" mb={1}>
-                      Número
-                    </Text>
+                    <Select.Root
+                      value={[editingPhone.country_code]}
+                      onValueChange={(e) =>
+                        setEditingPhone({
+                          ...editingPhone,
+                          country_code: e.value[0],
+                        })
+                      }
+                      size="md"
+                      collection={countryCollection}
+                      positioning={{ sameWidth: true }}
+                    >
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger cursor="pointer">
+                          <Select.ValueText placeholder="Selecione o país" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                      <Select.Positioner zIndex={2000}>
+                        <Select.Content>
+                          {countryCollection.items.map((item) => (
+                            <Select.Item cursor="pointer" item={item} key={item.value}>
+                              {item.label}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Select.Root>
+                  </Box>
+                  <Box>
                     <Input
                       placeholder="(99) 99999-9999"
                       value={formatPhone(editingPhone.number)}
@@ -688,7 +760,6 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
                 Cancelar
               </Button>
               <Button
-                colorPalette="blue"
                 onClick={handleUpdate}
                 loading={isSubmitting}
               >
@@ -711,7 +782,7 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
         }}
       >
         <Dialog.Backdrop />
-        <Dialog.Positioner>
+        <Dialog.Positioner cursor="default">
           <Dialog.Content>
             <Dialog.Header>
               <Dialog.Title>Remover Telefone</Dialog.Title>
@@ -759,7 +830,7 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
         }}
       >
         <Dialog.Backdrop />
-        <Dialog.Positioner>
+        <Dialog.Positioner cursor="default">
           <Dialog.Content>
             <Dialog.Header>
               <Dialog.Title>Confirmar Verificação</Dialog.Title>
@@ -797,7 +868,6 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
                 Cancelar
               </Button>
               <Button
-                colorPalette="blue"
                 onClick={confirmSendVerificationCode}
                 loading={isSendingCode}
               >

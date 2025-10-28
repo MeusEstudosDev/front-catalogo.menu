@@ -8,15 +8,15 @@ import {
   Container,
   Dialog,
   Flex,
-  Heading,
   Input,
+  InputGroup,
   Portal,
   Select,
   Spinner,
   Table,
   Text,
   Textarea,
-  createListCollection,
+  createListCollection
 } from "@chakra-ui/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -518,18 +518,10 @@ function NotificationsPageContent() {
   };
 
   return (
-    <Container maxW="container.xl" py={8}>
+    <Container maxW="container.xl">
       <Box>
-        <Flex justify="space-between" align="center" mb={6}>
-          <Box>
-            <Heading as="h1" size="xl" mb={2}>
-              Notificações do Sistema
-            </Heading>
-            <Text color="gray.600" _dark={{ color: "gray.400" }}>
-              Gerencie as notificações enviadas para os usuários
-            </Text>
-          </Box>
-          <Button colorPalette="blue" onClick={openCreateModal}>
+        <Flex justify="flex-end" align="center" mb={6}>
+          <Button onClick={openCreateModal}>
             <FaPlus /> Nova Notificação
           </Button>
         </Flex>
@@ -545,85 +537,82 @@ function NotificationsPageContent() {
         >
           <Flex gap={4} flexWrap="wrap">
             <Box flex="1" minW="200px">
-              <Text fontSize="sm" mb={2} fontWeight="medium">
-                Buscar
-              </Text>
-              <Input
-                placeholder="Título ou mensagem..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              />
+              <InputGroup startAddon="Buscar">
+                <Input
+                  placeholder="Título ou mensagem..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                />
+              </InputGroup>
             </Box>
 
-            <Box minW="150px">
-              <Text fontSize="sm" mb={2} fontWeight="medium">
-                Tipo
-              </Text>
-              <Select.Root
-                collection={typeFilterOptions}
-                value={[typeFilter]}
-                onValueChange={(e) => setTypeFilter(e.value[0])}
-              >
-                <Select.HiddenSelect />
-                <Select.Control>
-                  <Select.Trigger>
-                    <Select.ValueText placeholder="Selecione" />
-                  </Select.Trigger>
-                  <Select.IndicatorGroup>
-                    <Select.Indicator />
-                  </Select.IndicatorGroup>
-                </Select.Control>
-                <Portal>
-                  <Select.Positioner>
-                    <Select.Content>
-                      {typeFilterOptions.items.map((type) => (
-                        <Select.Item key={type} item={type}>
-                          {type ? translateType(type) : "Todos"}
-                          <Select.ItemIndicator />
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Positioner>
-                </Portal>
-              </Select.Root>
+            <Box minW="210px">
+              <InputGroup startAddon="Tipo">
+                <Select.Root
+                  collection={typeFilterOptions}
+                  value={[typeFilter]}
+                  onValueChange={(e) => setTypeFilter(e.value[0])}
+                >
+                  <Select.HiddenSelect />
+                  <Select.Control>
+                    <Select.Trigger>
+                      <Select.ValueText placeholder="Selecione" />
+                    </Select.Trigger>
+                    <Select.IndicatorGroup>
+                      <Select.Indicator />
+                    </Select.IndicatorGroup>
+                  </Select.Control>
+                  <Portal>
+                    <Select.Positioner>
+                      <Select.Content>
+                        {typeFilterOptions.items.map((type) => (
+                          <Select.Item key={type} item={type}>
+                            {type ? translateType(type) : "Todos"}
+                            <Select.ItemIndicator />
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Portal>
+                </Select.Root>
+              </InputGroup>
             </Box>
 
-            <Box minW="150px">
-              <Text fontSize="sm" mb={2} fontWeight="medium">
-                Prioridade
-              </Text>
-              <Select.Root
-                collection={priorityFilterOptions}
-                value={[priorityFilter]}
-                onValueChange={(e) => setPriorityFilter(e.value[0])}
-              >
-                <Select.HiddenSelect />
-                <Select.Control>
-                  <Select.Trigger>
-                    <Select.ValueText placeholder="Selecione" />
-                  </Select.Trigger>
-                  <Select.IndicatorGroup>
-                    <Select.Indicator />
-                  </Select.IndicatorGroup>
-                </Select.Control>
-                <Portal>
-                  <Select.Positioner>
-                    <Select.Content>
-                      {priorityFilterOptions.items.map((priority) => (
-                        <Select.Item key={priority} item={priority}>
-                          {priority ? translatePriority(priority) : "Todas"}
-                          <Select.ItemIndicator />
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Positioner>
-                </Portal>
-              </Select.Root>
+            <Box minW="210px">
+              <InputGroup startAddon="Prioridade">
+                <Select.Root
+                  collection={priorityFilterOptions}
+                  value={[priorityFilter]}
+                  onValueChange={(e) => setPriorityFilter(e.value[0])}
+                >
+                  <Select.HiddenSelect />
+                  <Select.Control>
+                    <Select.Trigger>
+                      <Select.ValueText placeholder="Selecione" />
+                    </Select.Trigger>
+                    <Select.IndicatorGroup>
+                      <Select.Indicator />
+                    </Select.IndicatorGroup>
+                  </Select.Control>
+                  <Portal>
+                    <Select.Positioner>
+                      <Select.Content>
+                        {priorityFilterOptions.items.map((priority) => (
+                          <Select.Item key={priority} item={priority}>
+                            {priority ? translatePriority(priority) : "Todas"}
+                            <Select.ItemIndicator />
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Portal>
+                </Select.Root>
+              </InputGroup>
             </Box>
 
             <Box display="flex" alignItems="flex-end">
-              <Button colorPalette="blue" onClick={handleSearch}>
+              <Button onClick={handleSearch}>
                 <FaSearch /> Buscar
               </Button>
             </Box>

@@ -2,7 +2,7 @@
 
 import { GoogleMap } from "@/components/account/GoogleMap";
 import { toaster } from "@/components/ui/toaster";
-import { Box, Button, Dialog, Input, Text } from "@chakra-ui/react";
+import { Box, Button, Dialog, Input, Select, Text, createListCollection } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import { IBusinessAddress } from "./types";
@@ -11,6 +11,14 @@ import { formatCep, removeMask } from "./utils";
 interface AddressesTabProps {
   businessId: string;
 }
+
+const addressTypeCollection = createListCollection({
+  items: [
+    { label: "Residencial", value: "RESIDENTIAL" },
+    { label: "Comercial", value: "COMMERCIAL" },
+    { label: "Outro", value: "OTHER" },
+  ],
+});
 
 export function AddressesTab({ businessId }: AddressesTabProps) {
   // Lista e carregamento
@@ -360,20 +368,34 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
 
   return (
     <Box display="flex" flexDir="column" gap={4} w="100%" px={{ base: 4, md: 0 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Text fontSize="xl" fontWeight="bold">Endereços da Empresa</Text>
-        <Button onClick={openCreateModal} colorPalette="blue" size="sm">
-          <FaPlus />
-          Adicionar Endereço
-        </Button>
+      <Box display="flex" justifyContent="flex-end" alignItems="center">
+        {
+          addresses.length !== 0 && (
+            <Button onClick={openCreateModal}>
+              <FaPlus />
+              Adicionar Endereço
+            </Button>
+          )
+        }
       </Box>
 
       {isLoading ? (
         <Text>Carregando endereços...</Text>
       ) : addresses.length === 0 ? (
-        <Box textAlign="center" py={8}>
-          <Text color="gray.500">Nenhum endereço cadastrado.</Text>
-          <Button onClick={openCreateModal} colorPalette="blue" size="sm" mt={4}>
+        <Box
+            textAlign="center"
+            py={8}
+            border="1px dashed"
+            borderColor="gray.300"
+            borderRadius="md"
+        >
+          <Text color="gray.500">
+            Nenhum endereço cadastrado.
+          </Text>
+          <Text fontSize="sm" color="gray.400" mb={4}>
+            Adicione seu primeiro endereço para começar
+          </Text>
+          <Button onClick={openCreateModal}>
             Adicionar Primeiro Endereço
           </Button>
         </Box>
@@ -479,15 +501,33 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
                 <Box display="flex" flexDir="column" gap={4}>
                   <Box>
                     <Text fontSize="sm" mb={1}>Tipo</Text>
-                    <select
-                      value={newAddress.type}
-                      onChange={(e) => setNewAddress((p) => ({ ...p, type: e.target.value as any }))}
-                      style={{ width: "100%", height: "40px", padding: "0 12px", border: "1px solid var(--chakra-colors-border)", borderRadius: "6px" }}
+                    <Select.Root
+                      value={[newAddress.type]}
+                      onValueChange={(e) => setNewAddress((p) => ({ ...p, type: e.value[0] as any }))}
+                      size="sm"
+                      collection={addressTypeCollection}
+                      positioning={{ sameWidth: true }}
                     >
-                      <option value="RESIDENTIAL">Residencial</option>
-                      <option value="COMMERCIAL">Comercial</option>
-                      <option value="OTHER">Outro</option>
-                    </select>
+                      <Select.HiddenSelect />
+                      <Select.Control>
+                        <Select.Trigger>
+                          <Select.ValueText placeholder="Selecione o tipo" />
+                          <Select.IndicatorGroup>
+                            <Select.Indicator />
+                          </Select.IndicatorGroup>
+                        </Select.Trigger>
+                      </Select.Control>
+                      <Select.Positioner zIndex={2000}>
+                        <Select.Content>
+                          {addressTypeCollection.items.map((item) => (
+                            <Select.Item key={item.value} item={item}>
+                              <Select.ItemText>{item.label}</Select.ItemText>
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Select.Root>
                   </Box>
 
                   <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
@@ -597,14 +637,14 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
               {createAddressStep === 1 ? (
                 <>
                   <Button variant="outline" onClick={closeCreateModal}>Cancelar</Button>
-                  <Button colorPalette="blue" onClick={() => handleNextToMapStep(false)} loading={isLoadingGeocode}>
+                  <Button onClick={() => handleNextToMapStep(false)} loading={isLoadingGeocode}>
                     Continuar
                   </Button>
                 </>
               ) : (
                 <>
                   <Button variant="outline" onClick={() => setCreateAddressStep(1)}>Voltar</Button>
-                  <Button colorPalette="green" onClick={handleCreate} loading={isSubmitting}>
+                  <Button onClick={handleCreate} loading={isSubmitting}>
                     Salvar Endereço
                   </Button>
                 </>
@@ -634,15 +674,33 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
                   <Box display="flex" flexDir="column" gap={4}>
                     <Box>
                       <Text fontSize="sm" mb={1}>Tipo</Text>
-                      <select
-                        value={editingAddress.type}
-                        onChange={(e) => setEditingAddress((prev) => prev ? { ...prev, type: e.target.value as any } : null)}
-                        style={{ width: "100%", height: "40px", padding: "0 12px", border: "1px solid var(--chakra-colors-border)", borderRadius: "6px" }}
+                      <Select.Root
+                        value={[editingAddress.type]}
+                        onValueChange={(e) => setEditingAddress((prev) => prev ? { ...prev, type: e.value[0] as any } : null)}
+                        size="sm"
+                        collection={addressTypeCollection}
+                        positioning={{ sameWidth: true }}
                       >
-                        <option value="RESIDENTIAL">Residencial</option>
-                        <option value="COMMERCIAL">Comercial</option>
-                        <option value="OTHER">Outro</option>
-                      </select>
+                        <Select.HiddenSelect />
+                        <Select.Control>
+                          <Select.Trigger>
+                            <Select.ValueText placeholder="Selecione o tipo" />
+                            <Select.IndicatorGroup>
+                              <Select.Indicator />
+                            </Select.IndicatorGroup>
+                          </Select.Trigger>
+                        </Select.Control>
+                        <Select.Positioner zIndex={2000}>
+                          <Select.Content>
+                            {addressTypeCollection.items.map((item) => (
+                              <Select.Item key={item.value} item={item}>
+                                <Select.ItemText>{item.label}</Select.ItemText>
+                                <Select.ItemIndicator />
+                              </Select.Item>
+                            ))}
+                          </Select.Content>
+                        </Select.Positioner>
+                      </Select.Root>
                     </Box>
 
                     <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>

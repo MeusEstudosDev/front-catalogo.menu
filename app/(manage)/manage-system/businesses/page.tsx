@@ -19,6 +19,7 @@ import {
   Flex,
   Input,
   InputGroup,
+  NativeSelect,
   Spinner,
   Table,
   Text
@@ -364,292 +365,259 @@ function BusinessesPageContent() {
         </Flex>
 
         {/* Busca e filtros */}
-        <Flex gap={4} mb={6} flexWrap="wrap" align="end">
-          <Box flex="1" minW="250px">
-            <InputGroup startAddon="Buscar">
-              <Input
-                placeholder="Nome ou CNPJ..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              />
-            </InputGroup>
-          </Box>
-          
-          <Box minW="120px">
-            <InputGroup startAddon="Código">
-              <Input
-                type="number"
-                placeholder="Código..."
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              />
-            </InputGroup>
-          </Box>
+        <Box
+          p={4}
+          bg="white"
+          _dark={{ bg: "gray.800" }}
+          borderRadius="lg"
+          boxShadow="sm"
+          mb={6}
+        >
+          <Flex gap={4} flexWrap="wrap" align="end">
+            <Box flex="1" minW="250px">
+              <InputGroup startAddon="Buscar">
+                <Input
+                  placeholder="Nome ou CNPJ..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                />
+              </InputGroup>
+            </Box>
+            
+            <Box minW="120px">
+              <InputGroup startAddon="Código">
+                <Input
+                  type="number"
+                  placeholder="Código..."
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                />
+              </InputGroup>
+            </Box>
 
-          <Box minW="150px">
-            <InputGroup startAddon="Status">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                style={{
-                  width: "100%",
-                  height: "40px",
-                  padding: "0 12px",
-                  border: "1px solid var(--chakra-colors-border)",
-                  borderRadius: "6px",
-                  backgroundColor: "transparent",
-                  color: "inherit",
-                  fontSize: "14px",
-                  outline: "none",
-                }}
-              >
-                <option value="">Todos</option>
-                {Object.values(BusinessStatus).map((status) => (
-                  <option key={status} value={status}>
-                    {translateStatus(status)}
-                  </option>
-                ))}
-              </select>
-            </InputGroup>
-          </Box>
+            <Box minW="150px">
+              <InputGroup startAddon="Status">
+                <NativeSelect.Root>
+                  <NativeSelect.Field
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="">Todos</option>
+                    {Object.values(BusinessStatus).map((status) => (
+                      <option key={status} value={status}>
+                        {translateStatus(status)}
+                      </option>
+                    ))}
+                  </NativeSelect.Field>
+                  <NativeSelect.Indicator />
+                </NativeSelect.Root>
+              </InputGroup>
+            </Box>
 
-          <Button onClick={handleSearch} height="40px">
-            <FaSearch />
-            Buscar
-          </Button>
-        </Flex>
+            <Button onClick={handleSearch} height="40px">
+              <FaSearch />
+              Buscar
+            </Button>
+          </Flex>
+        </Box>
 
         {/* Tabela */}
-        {isLoading ? (
-          <Flex justify="center" align="center" py={12}>
-            <Spinner size="xl" />
-          </Flex>
-        ) : businesses.length === 0 ? (
-          <Box
-            textAlign="center"
-            py={12}
-            border="1px dashed"
-            borderColor="gray.300"
-            borderRadius="md"
-          >
-            <Text fontSize="lg" color="gray.500" mb={2}>
-              Nenhuma empresa encontrada
-            </Text>
-            <Text fontSize="sm" color="gray.400">
-              {search
-                ? "Tente buscar com outros termos"
-                : "Crie a primeira empresa para começar"}
-            </Text>
-          </Box>
-        ) : (
-          <Box overflowX="auto" border="1px" borderColor="gray.200" borderRadius="md">
-            <Table.Root variant="outline" size="sm">
-              <Table.Header>
-                <Table.Row bg="gray.50" _dark={{ bg: "gray.800" }}>
-                  <Table.ColumnHeader
-                    cursor="pointer"
-                    onClick={() => handleSort("code")}
-                    _hover={{ bg: "gray.100", _dark: { bg: "gray.700" } }}
-                  >
-                    <Flex align="center" gap={2}>
-                      Código
-                      <MdSwapVert />
-                    </Flex>
-                  </Table.ColumnHeader>
-                  <Table.ColumnHeader
-                    cursor="pointer"
-                    onClick={() => handleSort("name")}
-                    _hover={{ bg: "gray.100", _dark: { bg: "gray.700" } }}
-                  >
-                    <Flex align="center" gap={2}>
-                      Nome
-                      <MdSwapVert />
-                    </Flex>
-                  </Table.ColumnHeader>
-                  <Table.ColumnHeader>CNPJ</Table.ColumnHeader>
-                  <Table.ColumnHeader>Website</Table.ColumnHeader>
-                  <Table.ColumnHeader
-                    cursor="pointer"
-                    onClick={() => handleSort("status")}
-                    _hover={{ bg: "gray.100", _dark: { bg: "gray.700" } }}
-                  >
-                    <Flex align="center" gap={2}>
-                      Status
-                      <MdSwapVert />
-                    </Flex>
-                  </Table.ColumnHeader>
-                  <Table.ColumnHeader
-                    cursor="pointer"
-                    onClick={() => handleSort("created_at")}
-                    _hover={{ bg: "gray.100", _dark: { bg: "gray.700" } }}
-                  >
-                    <Flex align="center" gap={2}>
-                      Data de Criação
-                      <MdSwapVert />
-                    </Flex>
-                  </Table.ColumnHeader>
-                  <Table.ColumnHeader textAlign="center">Ações</Table.ColumnHeader>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {businesses.map((business) => (
-                  <Table.Row
-                    key={business.id}
-                    _hover={{ bg: "gray.50", _dark: { bg: "gray.800" } }}
-                  >
-                    <Table.Cell fontWeight="medium">#{business.code}</Table.Cell>
-                    <Table.Cell>{business.name}</Table.Cell>
-                    <Table.Cell fontFamily="mono" fontSize="sm">
-                      {formatCnpj(business.cnpj)}
-                    </Table.Cell>
-                    <Table.Cell>
-                      {business.website ? (
-                        <Flex align="center" gap={2}>
-                          <a
-                            href={business.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              color: "var(--chakra-colors-blue-500)",
-                              textDecoration: "none",
-                              fontSize: "14px",
-                              maxWidth: "200px",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              display: "inline-block",
-                            }}
-                          >
-                            {business.website}
-                          </a>
-                          <FaExternalLinkAlt size={12} color="blue" />
-                        </Flex>
-                      ) : (
-                        <Text color="gray.400" fontSize="sm">
-                          -
-                        </Text>
-                      )}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Badge colorPalette={getStatusColorScheme(business.status)}>
-                        {translateStatus(business.status)}
-                      </Badge>
-                    </Table.Cell>
-                    <Table.Cell fontSize="sm">
-                      {formatDate(business.created_at)}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Flex justify="center" gap={2}>
-                        <Button
-                          size="xs"
-                          variant="ghost"
-                          colorPalette="blue"
-                          onClick={() =>
-                            router.push(`/manage-system/businesses/edit?id=${business.id}`)
-                          }
-                          title="Editar"
-                        >
-                          <FaEdit />
-                        </Button>
-                        <Button
-                          size="xs"
-                          variant="ghost"
-                          colorPalette="orange"
-                          onClick={() => openStatusModal(business)}
-                          title="Alterar status"
-                        >
-                          <MdSwapVert />
-                        </Button>
-                        <Button
-                          size="xs"
-                          variant="ghost"
-                          colorPalette="red"
-                          onClick={() => openDeleteModal(business)}
-                          title="Deletar"
-                        >
-                          <FaTrash />
-                        </Button>
-                      </Flex>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </Table.Body>
-            </Table.Root>
-          </Box>
-        )}
 
-        {/* Paginação */}
-        {!isLoading && businesses.length > 0 && (
-          <Flex justify="space-between" align="center" mt={6} flexWrap="wrap" gap={4}>
-            <Text fontSize="sm" color="gray.600">
-              Mostrando {(pageNumber - 1) * pageSize + 1} - {" "}
-              {Math.min(pageNumber * pageSize, total)} de {total} empresas
-            </Text>
-            <Flex gap={2}>
-              <Box>
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPageNumber(1);
-                  }}
-                  style={{
-                    width: "100%",
-                    height: "40px",
-                    padding: "0 12px",
-                    border: "1px solid var(--chakra-colors-border)",
-                    borderRadius: "6px",
-                    backgroundColor: "transparent",
-                    color: "inherit",
-                    fontSize: "14px",
-                    outline: "none",
-                  }}
-                >
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </Box>
-
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setPageNumber(pageNumber - 1)}
-                disabled={pageNumber === 1}
-              >
-                Anterior
-              </Button>
-              <Flex gap={1} align="center">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const page = i + 1;
-                  return (
-                    <Button
-                      key={page}
-                      size="sm"
-                      variant={pageNumber === page ? "solid" : "ghost"}
-                      colorPalette={pageNumber === page ? "blue" : "gray"}
-                      onClick={() => setPageNumber(page)}
-                    >
-                      {page}
-                    </Button>
-                  );
-                })}
-                {totalPages > 5 && <Text px={2}>...</Text>}
-              </Flex>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setPageNumber(pageNumber + 1)}
-                disabled={pageNumber === totalPages}
-              >
-                Próxima
-              </Button>
+        <Box
+          bg="white"
+          _dark={{ bg: "gray.800" }}
+          borderRadius="lg"
+          boxShadow="sm"
+          overflow="hidden"
+        >
+          {isLoading ? (
+            <Flex justify="center" align="center" py={12}>
+              <Spinner size="xl" />
             </Flex>
-          </Flex>
-        )}
+          ) : businesses.length === 0 ? (
+            <Box
+              textAlign="center"
+              py={12}
+              border="1px dashed"
+              borderColor="gray.300"
+              borderRadius="md"
+            >
+              <Text fontSize="lg" color="gray.500" mb={2}>
+                Nenhuma empresa encontrada
+              </Text>
+              <Text fontSize="sm" color="gray.400">
+                {search
+                  ? "Tente buscar com outros termos"
+                  : "Crie a primeira empresa para começar"}
+              </Text>
+            </Box>
+          ) : (
+            <Box overflowX="auto" border="1px" borderColor="gray.200" borderRadius="md">
+              <Table.Root variant="outline" size="sm">
+                <Table.Header>
+                  <Table.Row bg="gray.50" _dark={{ bg: "gray.800" }}>
+                    <Table.ColumnHeader
+                      cursor="pointer"
+                      onClick={() => handleSort("code")}
+                      _hover={{ bg: "gray.100", _dark: { bg: "gray.700" } }}
+                    >
+                      <Flex align="center" gap={2}>
+                        Código
+                        <MdSwapVert />
+                      </Flex>
+                    </Table.ColumnHeader>
+                    <Table.ColumnHeader
+                      cursor="pointer"
+                      onClick={() => handleSort("name")}
+                      _hover={{ bg: "gray.100", _dark: { bg: "gray.700" } }}
+                    >
+                      <Flex align="center" gap={2}>
+                        Nome
+                        <MdSwapVert />
+                      </Flex>
+                    </Table.ColumnHeader>
+                    <Table.ColumnHeader>CNPJ</Table.ColumnHeader>
+                    <Table.ColumnHeader>Website</Table.ColumnHeader>
+                    <Table.ColumnHeader
+                      cursor="pointer"
+                      onClick={() => handleSort("status")}
+                      _hover={{ bg: "gray.100", _dark: { bg: "gray.700" } }}
+                    >
+                      <Flex align="center" gap={2}>
+                        Status
+                        <MdSwapVert />
+                      </Flex>
+                    </Table.ColumnHeader>
+                    <Table.ColumnHeader
+                      cursor="pointer"
+                      onClick={() => handleSort("created_at")}
+                      _hover={{ bg: "gray.100", _dark: { bg: "gray.700" } }}
+                    >
+                      <Flex align="center" gap={2}>
+                        Data de Criação
+                        <MdSwapVert />
+                      </Flex>
+                    </Table.ColumnHeader>
+                    <Table.ColumnHeader textAlign="center">Ações</Table.ColumnHeader>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {businesses.map((business) => (
+                    <Table.Row
+                      key={business.id}
+                      _hover={{ bg: "gray.50", _dark: { bg: "gray.800" } }}
+                    >
+                      <Table.Cell fontWeight="medium">#{business.code}</Table.Cell>
+                      <Table.Cell>{business.name}</Table.Cell>
+                      <Table.Cell fontFamily="mono" fontSize="sm">
+                        {formatCnpj(business.cnpj)}
+                      </Table.Cell>
+                      <Table.Cell>
+                        {business.website ? (
+                          <Flex align="center" gap={2}>
+                            <a
+                              href={business.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: "var(--chakra-colors-blue-500)",
+                                textDecoration: "none",
+                                fontSize: "14px",
+                                maxWidth: "200px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                display: "inline-block",
+                              }}
+                            >
+                              {business.website}
+                            </a>
+                            <FaExternalLinkAlt size={12} color="blue" />
+                          </Flex>
+                        ) : (
+                          <Text color="gray.400" fontSize="sm">
+                            -
+                          </Text>
+                        )}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Badge colorPalette={getStatusColorScheme(business.status)}>
+                          {translateStatus(business.status)}
+                        </Badge>
+                      </Table.Cell>
+                      <Table.Cell fontSize="sm">
+                        {formatDate(business.created_at)}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Flex justify="center" gap={2}>
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            colorPalette="blue"
+                            onClick={() =>
+                              router.push(`/manage-system/businesses/edit?id=${business.id}`)
+                            }
+                            title="Editar"
+                          >
+                            <FaEdit />
+                          </Button>
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            colorPalette="orange"
+                            onClick={() => openStatusModal(business)}
+                            title="Alterar status"
+                          >
+                            <MdSwapVert />
+                          </Button>
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            colorPalette="red"
+                            onClick={() => openDeleteModal(business)}
+                            title="Deletar"
+                          >
+                            <FaTrash />
+                          </Button>
+                        </Flex>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+
+              {/* Paginação */}
+              <Flex justify="space-between" align="center" p={4} borderTop="1px" borderColor="gray.200">
+                <Text fontSize="sm" color="gray.600">
+                  Mostrando {(pageNumber - 1) * pageSize + 1} a{" "}
+                  {Math.min(pageNumber * pageSize, total)} de {total} notificações
+                </Text>
+                <Flex gap={2}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setPageNumber(pageNumber - 1)}
+                    disabled={pageNumber === 1}
+                  >
+                    Anterior
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setPageNumber(pageNumber + 1)}
+                    disabled={pageNumber >= totalPages}
+                  >
+                    Próxima
+                  </Button>
+                </Flex>
+              </Flex>
+            </Box>
+          )}
+        </Box>
+
+
 
         {/* Modal de Criação */}
         <Dialog.Root
@@ -839,27 +807,19 @@ function BusinessesPageContent() {
                   <Text fontSize="sm" mb={2} fontWeight="medium">
                     Novo Status
                   </Text>
-                  <select
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value as BusinessStatus)}
-                    style={{
-                      width: "100%",
-                      height: "40px",
-                      padding: "0 12px",
-                      border: "1px solid var(--chakra-colors-border)",
-                      borderRadius: "6px",
-                      backgroundColor: "transparent",
-                      color: "inherit",
-                      fontSize: "14px",
-                      outline: "none",
-                    }}
-                  >
-                    {Object.values(BusinessStatus).map((status) => (
-                      <option key={status} value={status}>
-                        {translateStatus(status)}
-                      </option>
-                    ))}
-                  </select>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={newStatus}
+                      onChange={(e) => setNewStatus(e.target.value as BusinessStatus)}
+                    >
+                      {Object.values(BusinessStatus).map((status) => (
+                        <option key={status} value={status}>
+                          {translateStatus(status)}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
                 </Box>
               </Dialog.Body>
               <Dialog.Footer>

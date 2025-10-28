@@ -4,10 +4,12 @@ import { toaster } from "@/components/ui/toaster";
 import {
     Box,
     Button,
+    createListCollection,
     FileUpload,
     Image,
     Input,
     InputGroup,
+    Select,
     Text,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,6 +39,15 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+// Collection para o select de gênero
+const genderCollection = createListCollection({
+  items: [
+    { value: "MALE", label: "Masculino" },
+    { value: "FEMALE", label: "Feminino" },
+    { value: "OTHER", label: "Outro" },
+  ],
+});
+
 interface AccountTabProps {
   profile: IProfile;
   onProfileUpdate: (profile: IProfile) => void;
@@ -52,6 +63,9 @@ export function AccountTab({ profile, onProfileUpdate }: AccountTabProps) {
   );
   const [maskedBirthdate, setMaskedBirthdate] = useState<string>(
     profile.birth_date ? formatISODateToDisplay(profile.birth_date) : ""
+  );
+  const [selectedGender, setSelectedGender] = useState<string>(
+    profile?.gender || "OTHER"
   );
 
   const {
@@ -370,7 +384,7 @@ export function AccountTab({ profile, onProfileUpdate }: AccountTabProps) {
           </InputGroup>
         </Box>
 
-        <Box display={"flex"} flexDir={{ base: "column", md: "row" }} gap={4}>
+        <Box display={"flex"} flexDir={"row"} gap={4}>
           <InputGroup startAddon="Nome">
             <Input {...register("name")} />
           </InputGroup>
@@ -445,38 +459,38 @@ export function AccountTab({ profile, onProfileUpdate }: AccountTabProps) {
           </InputGroup>
 
           <InputGroup startAddon="Gênero" flex="1" minW="0">
-            <Box position="relative" w="100%">
-              <select
-                {...register("gender")}
-                style={{
-                  width: "100%",
-                  height: "40px",
-                  padding: "0 32px 0 12px",
-                  border: "1px solid var(--chakra-colors-border)",
-                  borderRadius: "6px",
-                  backgroundColor: "transparent",
-                  color: "inherit",
-                  fontSize: "14px",
-                  outline: "none",
-                  appearance: "none",
-                }}
-              >
-                <option value="MALE">Masculino</option>
-                <option value="FEMALE">Feminino</option>
-                <option value="OTHER">Outro</option>
-              </select>
-              <Box
-                as="span"
-                position="absolute"
-                right="12px"
-                top="50%"
-                transform="translateY(-50%)"
-                pointerEvents="none"
-                fontSize="12px"
-              >
-                ▼
-              </Box>
-            </Box>
+            <Select.Root
+              collection={genderCollection}
+              value={[selectedGender]}
+              onValueChange={(details) => {
+                const value = details.value[0];
+                if (value) {
+                  setSelectedGender(value);
+                  setValue("gender", value as "MALE" | "FEMALE" | "OTHER");
+                }
+              }}
+              positioning={{ sameWidth: true }}
+            >
+              <Select.HiddenSelect {...register("gender")} />
+              <Select.Control>
+                <Select.Trigger cursor="pointer">
+                  <Select.ValueText placeholder="Selecione o gênero" />
+                </Select.Trigger>
+                <Select.IndicatorGroup>
+                  <Select.Indicator />
+                </Select.IndicatorGroup>
+              </Select.Control>
+              <Select.Positioner>
+                <Select.Content>
+                  {genderCollection.items.map((item) => (
+                    <Select.Item cursor="pointer" item={item} key={item.value}>
+                      <Select.ItemText>{item.label}</Select.ItemText>
+                      <Select.ItemIndicator />
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Positioner>
+            </Select.Root>
           </InputGroup>
         </Box>
 
