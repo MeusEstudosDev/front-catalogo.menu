@@ -8,6 +8,7 @@ import {
   Button,
   Dialog,
   Input,
+  InputGroup,
   Spinner,
   Table,
   Text,
@@ -170,85 +171,94 @@ export function EmployeesTab({ businessId }: EmployeesTabProps) {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-        <Text fontSize="xl" fontWeight="bold">Colaboradores</Text>
-        <Button colorScheme="blue" size="sm" onClick={() => setIsInviteModalOpen(true)}>
-          <FaPlus style={{ marginRight: 8 }} />
+      <Box display="flex" justifyContent="flex-end" alignItems="center" mb={4}>
+        <Button onClick={() => setIsInviteModalOpen(true)}>
+          <FaPlus />
           Convidar
         </Button>
       </Box>
 
-      {isLoading ? (
-        <Box textAlign="center" py={8}>
-          <Spinner size="lg" />
-          <Text mt={2}>Carregando colaboradores...</Text>
-        </Box>
-      ) : employees.length === 0 ? (
-        <Box textAlign="center" py={8} bg="gray.50" borderRadius="md">
-          <Text color="gray.500">Nenhum colaborador cadastrado</Text>
-        </Box>
-      ) : (
-        <Box overflowX="auto">
-          <Table.Root size="sm" striped>
-            <Table.Header>
-              <Table.Row>
-                <Table.ColumnHeader>Código</Table.ColumnHeader>
-                <Table.ColumnHeader>Nome</Table.ColumnHeader>
-                <Table.ColumnHeader>Email</Table.ColumnHeader>
-                <Table.ColumnHeader>Verificado</Table.ColumnHeader>
-                <Table.ColumnHeader>CPF</Table.ColumnHeader>
-                <Table.ColumnHeader>Nascimento</Table.ColumnHeader>
-                <Table.ColumnHeader>Gênero</Table.ColumnHeader>
-                <Table.ColumnHeader>Status</Table.ColumnHeader>
-                <Table.ColumnHeader>Criado em</Table.ColumnHeader>
-                <Table.ColumnHeader textAlign="center">Ações</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {employees.map((emp) => (
-                <Table.Row key={emp.id}>
-                  <Table.Cell fontWeight="medium">#{emp.code}</Table.Cell>
-                  <Table.Cell>{emp.name}</Table.Cell>
-                  <Table.Cell fontFamily="mono" fontSize="sm">{emp.email}</Table.Cell>
-                  <Table.Cell>
-                    {emp.email_verified_at ? (
-                      <Badge colorPalette="green">Verificado</Badge>
-                    ) : (
-                      <Badge colorPalette="gray">Pendente</Badge>
-                    )}
-                  </Table.Cell>
-                  <Table.Cell>{emp.cpf || "-"}</Table.Cell>
-                  <Table.Cell fontSize="sm">{emp.birth_date ? formatDate(emp.birth_date) : "-"}</Table.Cell>
-                  <Table.Cell>{emp.gender || "-"}</Table.Cell>
-                  <Table.Cell>
-                    <Badge colorPalette={getEmployeeStatusColorScheme(emp.status)}>
-                      {emp.status}
-                    </Badge>
-                  </Table.Cell>
-                  <Table.Cell fontSize="sm">{formatDate(emp.created_at)}</Table.Cell>
-                  <Table.Cell>
-                    <Box display="flex" justifyContent="center">
-                      <Button
-                        size="xs"
-                        variant="ghost"
-                        colorPalette="red"
-                        onClick={() => {
-                          setSelectedEmployee(emp);
-                          setIsRemoveModalOpen(true);
-                        }}
-                        title="Remover colaborador da empresa"
-                      >
-                        <VscDebugDisconnect />
-                      </Button>
-                    </Box>
-                  </Table.Cell>
+      <Box
+        bg="white"
+        _dark={{ bg: "gray.800" }}
+        borderRadius="lg"
+        boxShadow="sm"
+        overflow="hidden"
+      >
+        {isLoading ? (
+          <Box textAlign="center" py={8}>
+            <Spinner size="lg" />
+            <Text mt={2}>Carregando colaboradores...</Text>
+          </Box>
+        ) : employees.length === 0 ? (
+          <Box textAlign="center" py={8} bg="gray.50" borderRadius="md">
+            <Text color="gray.500">Nenhum colaborador cadastrado</Text>
+          </Box>
+        ) : (
+          <Box overflowX="auto" border="1px" borderColor="gray.200" borderRadius="md">
+            <Table.Root variant="outline" size="sm">
+              <Table.Header>
+                <Table.Row bg="gray.50" _dark={{ bg: "gray.800" }}>
+                  <Table.ColumnHeader>Código</Table.ColumnHeader>
+                  <Table.ColumnHeader>Nome</Table.ColumnHeader>
+                  <Table.ColumnHeader>Email</Table.ColumnHeader>
+                  <Table.ColumnHeader>Verificado</Table.ColumnHeader>
+                  <Table.ColumnHeader>CPF</Table.ColumnHeader>
+                  <Table.ColumnHeader>Nascimento</Table.ColumnHeader>
+                  <Table.ColumnHeader>Gênero</Table.ColumnHeader>
+                  <Table.ColumnHeader>Status</Table.ColumnHeader>
+                  <Table.ColumnHeader>Criado em</Table.ColumnHeader>
+                  <Table.ColumnHeader textAlign="center">Ações</Table.ColumnHeader>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
-        </Box>
-      )}
-
+              </Table.Header>
+              <Table.Body>
+                {employees.map((emp) => (
+                  <Table.Row
+                    key={emp.id}
+                    _hover={{ bg: "gray.50", _dark: { bg: "gray.800" } }}
+                  >
+                    <Table.Cell fontWeight="medium">#{emp.code}</Table.Cell>
+                    <Table.Cell>{emp.name}</Table.Cell>
+                    <Table.Cell fontFamily="mono" fontSize="sm">{emp.email}</Table.Cell>
+                    <Table.Cell>
+                      {emp.email_verified_at ? (
+                        <Badge colorPalette="green">Verificado</Badge>
+                      ) : (
+                        <Badge colorPalette="gray">Pendente</Badge>
+                      )}
+                    </Table.Cell>
+                    <Table.Cell>{emp.cpf || "-"}</Table.Cell>
+                    <Table.Cell fontSize="sm">{emp.birth_date ? formatDate(emp.birth_date) : "-"}</Table.Cell>
+                    <Table.Cell>{emp.gender || "-"}</Table.Cell>
+                    <Table.Cell>
+                      <Badge colorPalette={getEmployeeStatusColorScheme(emp.status)}>
+                        {emp.status}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell fontSize="sm">{formatDate(emp.created_at)}</Table.Cell>
+                    <Table.Cell>
+                      <Box display="flex" justifyContent="center">
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          colorPalette="red"
+                          onClick={() => {
+                            setSelectedEmployee(emp);
+                            setIsRemoveModalOpen(true);
+                          }}
+                          title="Remover colaborador da empresa"
+                        >
+                          <VscDebugDisconnect />
+                        </Button>
+                      </Box>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
+        )}
+      </Box>
       {/* Modal: Convidar colaborador */}
       <Dialog.Root
         open={isInviteModalOpen}
@@ -269,21 +279,23 @@ export function EmployeesTab({ businessId }: EmployeesTabProps) {
             <Dialog.Body>
               <Box display="flex" flexDirection="column" gap={3}>
                 <Box>
-                  <Text fontSize="sm" mb={1} fontWeight="medium">Nome</Text>
-                  <Input
-                    placeholder="Nome do colaborador"
-                    value={inviteName}
-                    onChange={(e) => setInviteName(e.target.value)}
-                  />
+                  <InputGroup startAddon="Nome">
+                    <Input
+                      placeholder="Nome do colaborador"
+                      value={inviteName}
+                      onChange={(e) => setInviteName(e.target.value)}
+                    />
+                  </InputGroup>
                 </Box>
                 <Box>
-                  <Text fontSize="sm" mb={1} fontWeight="medium">Email</Text>
-                  <Input
-                    type="email"
-                    placeholder="email@exemplo.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                  />
+                  <InputGroup startAddon="E-mail">
+                    <Input
+                      type="email"
+                      placeholder="email@exemplo.com"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                    />
+                  </InputGroup>
                 </Box>
               </Box>
             </Dialog.Body>
@@ -298,7 +310,8 @@ export function EmployeesTab({ businessId }: EmployeesTabProps) {
               >
                 Cancelar
               </Button>
-              <Button colorPalette="blue" onClick={sendInvite} loading={isInviting}>
+              <Button onClick={sendInvite} loading={isInviting}>
+                <FaPlus />
                 Enviar convite
               </Button>
             </Dialog.Footer>
@@ -340,6 +353,7 @@ export function EmployeesTab({ businessId }: EmployeesTabProps) {
                 Cancelar
               </Button>
               <Button colorPalette="red" onClick={confirmRemove} loading={isRemoving}>
+                <VscDebugDisconnect />
                 Remover
               </Button>
             </Dialog.Footer>

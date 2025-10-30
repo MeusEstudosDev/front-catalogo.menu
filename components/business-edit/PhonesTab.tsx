@@ -592,8 +592,8 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
                       </Select.Control>
                       <Select.Positioner zIndex={2000}>
                         <Select.Content>
-                          {countryCollection.items.map((item) => (
-                            <Select.Item cursor="pointer" item={item} key={item.value}>
+                          {countryCollection.items.map((item, i) => (
+                            <Select.Item cursor="pointer" item={item} key={item.value + i}>
                               {item.label}
                               <Select.ItemIndicator />
                             </Select.Item>
@@ -709,8 +709,8 @@ export function PhonesTab({ businessId }: PhonesTabProps) {
                       </Select.Control>
                       <Select.Positioner zIndex={2000}>
                         <Select.Content>
-                          {countryCollection.items.map((item) => (
-                            <Select.Item cursor="pointer" item={item} key={item.value}>
+                          {countryCollection.items.map((item, i) => (
+                            <Select.Item cursor="pointer" item={item} key={item.value + i}>
                               {item.label}
                               <Select.ItemIndicator />
                             </Select.Item>

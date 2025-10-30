@@ -460,8 +460,8 @@ function BusinessesPageContent() {
                   <Table.Row bg="gray.50" _dark={{ bg: "gray.800" }}>
                     <Table.ColumnHeader
                       cursor="pointer"
-                      onClick={() => handleSort("code")}
                       _hover={{ bg: "gray.100", _dark: { bg: "gray.700" } }}
+                      onClick={() => handleSort("code")}
                     >
                       <Flex align="center" gap={2}>
                         Código
@@ -500,7 +500,7 @@ function BusinessesPageContent() {
                         <MdSwapVert />
                       </Flex>
                     </Table.ColumnHeader>
-                    <Table.ColumnHeader textAlign="center">Ações</Table.ColumnHeader>
+                    <Table.ColumnHeader textAlign="right">Ações</Table.ColumnHeader>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
@@ -551,7 +551,7 @@ function BusinessesPageContent() {
                         {formatDate(business.created_at)}
                       </Table.Cell>
                       <Table.Cell>
-                        <Flex justify="center" gap={2}>
+                        <Flex justify="right" gap={2}>
                           <Button
                             size="xs"
                             variant="ghost"

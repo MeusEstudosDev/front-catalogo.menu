@@ -462,7 +462,6 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
                   <Button
                     size="sm"
                     variant="outline"
-                    colorPalette="blue"
                     flex="1"
                     onClick={() => openEditModal(address)}
                   >
@@ -623,12 +622,38 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
                   <Text fontSize="sm" fontWeight="semibold">Confirme a Localização no Mapa</Text>
                   <Text fontSize="xs" color="gray.600">Clique ou arraste o marcador para ajustar a localização exata do endereço</Text>
                   {newAddress.latitude && newAddress.longitude && (
-                    <GoogleMap
-                      latitude={newAddress.latitude}
-                      longitude={newAddress.longitude}
-                      onLocationChange={(lat, lng) => setNewAddress((p) => ({ ...p, latitude: lat, longitude: lng }))}
-                      height="400px"
-                    />
+                    <>
+                      <GoogleMap
+                        latitude={newAddress.latitude}
+                        longitude={newAddress.longitude}
+                        onLocationChange={(lat, lng) => setNewAddress((p) => ({ ...p, latitude: lat, longitude: lng }))}
+                        height="400px"
+                      />
+                      <Box
+                        p={3}
+                        borderRadius="md"
+                        border="1px dashed"
+                        borderColor="gray.200"
+                      >
+                        <Text fontSize="xs" fontWeight="semibold" mb={1}>
+                          Endereço:
+                        </Text>
+                        <Text fontSize="sm">
+                          {newAddress.street}, {newAddress.number}
+                          {newAddress.complement &&
+                            ` - ${newAddress.complement}`}
+                        </Text>
+                        <Text fontSize="sm">
+                          {newAddress.district} - {newAddress.city}/
+                          {newAddress.state}
+                        </Text>
+                        <Text fontSize="sm">CEP: {formatCep(newAddress.cep)}</Text>
+                        <Text fontSize="xs" color="gray.500" mt={2}>
+                          Coordenadas: {newAddress.latitude.toFixed(6)},{" "}
+                          {newAddress.longitude.toFixed(6)}
+                        </Text>
+                      </Box>
+                    </>
                   )}
                 </Box>
               )}
@@ -798,12 +823,38 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
                     <Text fontSize="sm" fontWeight="semibold">Confirme a Localização no Mapa</Text>
                     <Text fontSize="xs" color="gray.600">Clique ou arraste o marcador para ajustar a localização exata do endereço</Text>
                     {typeof editingAddress.latitude === "number" && typeof editingAddress.longitude === "number" && (
-                      <GoogleMap
-                        latitude={editingAddress.latitude}
-                        longitude={editingAddress.longitude}
-                        onLocationChange={(lat, lng) => setEditingAddress((prev) => prev ? { ...prev, latitude: lat, longitude: lng } : null)}
-                        height="400px"
-                      />
+                      <>
+                        <GoogleMap
+                          latitude={editingAddress.latitude}
+                          longitude={editingAddress.longitude}
+                          onLocationChange={(lat, lng) => setEditingAddress((prev) => prev ? { ...prev, latitude: lat, longitude: lng } : null)}
+                          height="400px"
+                        />
+                        <Box
+                          p={3}
+                          borderRadius="md"
+                          border="1px dashed"
+                          borderColor="gray.200"
+                        >
+                          <Text fontSize="xs" fontWeight="semibold" mb={1}>
+                            Endereço:
+                          </Text>
+                          <Text fontSize="sm">
+                            {editingAddress.street}, {editingAddress.number}
+                            {editingAddress.complement &&
+                              ` - ${editingAddress.complement}`}
+                          </Text>
+                          <Text fontSize="sm">
+                            {editingAddress.district} - {editingAddress.city}/
+                            {editingAddress.state}
+                          </Text>
+                          <Text fontSize="sm">CEP: {formatCep(editingAddress.cep)}</Text>
+                          <Text fontSize="xs" color="gray.500" mt={2}>
+                            Coordenadas: {editingAddress.latitude.toFixed(6)},{" "}
+                            {editingAddress.longitude.toFixed(6)}
+                          </Text>
+                        </Box>
+                      </>
                     )}
                   </Box>
                 )
@@ -813,14 +864,14 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
               {editAddressStep === 1 ? (
                 <>
                   <Button variant="outline" onClick={closeEditModal}>Cancelar</Button>
-                  <Button colorPalette="blue" onClick={() => handleNextToMapStep(true)} loading={isLoadingGeocode}>
+                  <Button onClick={() => handleNextToMapStep(true)} loading={isLoadingGeocode}>
                     Continuar
                   </Button>
                 </>
               ) : (
                 <>
                   <Button variant="outline" onClick={() => setEditAddressStep(1)}>Voltar</Button>
-                  <Button colorPalette="green" onClick={handleUpdate} loading={isSubmitting}>
+                  <Button onClick={handleUpdate} loading={isSubmitting}>
                     Salvar Alterações
                   </Button>
                 </>

@@ -5,12 +5,14 @@ import {
   Badge,
   Box,
   Button,
+  CheckboxCard,
   Dialog,
   Input,
+  InputGroup,
   PinInput,
   Spinner,
   Table,
-  Text,
+  Text
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { FaCheckCircle, FaEdit, FaPlus, FaTrash } from "react-icons/fa";
@@ -369,100 +371,126 @@ export function EmailsTab({ businessId }: EmailsTabProps) {
     <Box>
       <Box
         display="flex"
-        justifyContent="space-between"
+        justifyContent="flex-end"
         alignItems="center"
         mb={4}
       >
-        <Text fontSize="xl" fontWeight="bold">
-          E-mails
-        </Text>
-        <Button
-          colorScheme="blue"
-          size="sm"
-          onClick={() => setIsCreateModalOpen(true)}
-        >
-          <FaPlus style={{ marginRight: "8px" }} />
-          Adicionar E-mail
-        </Button>
+        {
+          emails.length !== 0 && (
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              <FaPlus />
+              Adicionar E-mail
+            </Button>
+          )
+        }
       </Box>
-
-      {isLoadingEmails ? (
-        <Box textAlign="center" py={8}>
-          <Spinner size="lg" />
-          <Text mt={2}>Carregando e-mails...</Text>
-        </Box>
-      ) : emails.length === 0 ? (
-        <Box textAlign="center" py={8} bg="gray.50" borderRadius="md">
-          <Text color="gray.500">Nenhum e-mail cadastrado</Text>
-        </Box>
-      ) : (
-        <Box overflowX="auto">
-          <Table.Root size="sm" striped>
-            <Table.Header>
-              <Table.Row>
-                <Table.ColumnHeader>Nome</Table.ColumnHeader>
-                <Table.ColumnHeader>E-mail</Table.ColumnHeader>
-                <Table.ColumnHeader>Status</Table.ColumnHeader>
-                <Table.ColumnHeader textAlign="right">Ações</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {emails.map((email) => (
-                <Table.Row key={email.id}>
-                  <Table.Cell>{email.name}</Table.Cell>
-                  <Table.Cell>{email.email}</Table.Cell>
-                  <Table.Cell>
-                    {email.verified ? (
-                      <Badge colorPalette="green">
-                        <FaCheckCircle style={{ marginRight: "4px" }} />
-                        Verificado
-                      </Badge>
-                    ) : (
-                      <Badge colorPalette="yellow">Não verificado</Badge>
-                    )}
-                  </Table.Cell>
-                  <Table.Cell textAlign="right">
-                    <Box display="flex" gap={2} justifyContent="flex-end">
-                      {!email.verified && (
+      <Box
+        bg="white"
+        _dark={{ bg: "gray.800" }}
+        borderRadius="lg"
+        boxShadow="sm"
+        overflow="hidden"
+      >
+        {isLoadingEmails ? (
+          <Box textAlign="center" py={8}>
+            <Spinner size="lg" />
+            <Text mt={2}>Carregando e-mails...</Text>
+          </Box>
+        ) : emails.length === 0 ? (
+          <Box
+            textAlign="center"
+            py={8}
+            border="1px dashed"
+            borderColor="gray.300"
+            borderRadius="md"
+        >
+            <Text color="gray.500">
+              Nenhum e-mail cadastrado
+            </Text>
+            <Text fontSize="sm" color="gray.400" mb={4}>
+              Cadastre para começar
+            </Text>
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              <FaPlus />
+              Cadastrar
+            </Button>
+          </Box>
+        ) : (
+          <Box overflowX="auto" border="1px" borderColor="gray.200" borderRadius="md">
+            <Table.Root variant="outline" size="sm">
+              <Table.Header>
+                <Table.Row bg="gray.50" _dark={{ bg: "gray.800" }}>
+                  <Table.ColumnHeader>Nome</Table.ColumnHeader>
+                  <Table.ColumnHeader>E-mail</Table.ColumnHeader>
+                  <Table.ColumnHeader>Status</Table.ColumnHeader>
+                  <Table.ColumnHeader textAlign="right">Ações</Table.ColumnHeader>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {emails.map((email) => (
+                  <Table.Row key={email.id} _hover={{ bg: "gray.50", _dark: { bg: "gray.800" } }}>
+                    <Table.Cell>{email.name}</Table.Cell>
+                    <Table.Cell>{email.email}</Table.Cell>
+                    <Table.Cell>
+                      {email.verified ? (
+                        <Badge colorPalette="green">
+                          <FaCheckCircle style={{ marginRight: "4px" }} />
+                          Verificado
+                        </Badge>
+                      ) : (
+                        <Badge colorPalette="yellow">Não verificado</Badge>
+                      )}
+                    </Table.Cell>
+                    <Table.Cell textAlign="right">
+                      <Box display="flex" gap={2} justifyContent="flex-end">
+                        {!email.verified && (
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            colorPalette="orange"
+                            onClick={() => sendVerificationCode(email)}
+                            title="Verificar E-mail"
+                          >
+                            <GoAlert />
+                          </Button>
+                        )}
                         <Button
                           size="xs"
-                          variant="outline"
-                          colorScheme="orange"
-                          onClick={() => sendVerificationCode(email)}
+                          variant="ghost"
+                          colorPalette="blue"
+                          onClick={() => {
+                            setEditingEmail(email);
+                            setIsEditModalOpen(true);
+                          }}
+                          title="Editar"
                         >
-                          <GoAlert />
+                          <FaEdit />
                         </Button>
-                      )}
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        colorScheme="blue"
-                        onClick={() => {
-                          setEditingEmail(email);
-                          setIsEditModalOpen(true);
-                        }}
-                      >
-                        <FaEdit />
-                      </Button>
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        colorScheme="red"
-                        onClick={() => {
-                          setEmailToDelete(email);
-                          setIsDeleteModalOpen(true);
-                        }}
-                      >
-                        <FaTrash />
-                      </Button>
-                    </Box>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
-        </Box>
-      )}
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          colorPalette="red"
+                          onClick={() => {
+                            setEmailToDelete(email);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          title="Deletar"
+                        >
+                          <FaTrash />
+                        </Button>
+                      </Box>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
+        )}
+      </Box>
 
       {/* Modal de Criação */}
       <Dialog.Root
@@ -533,25 +561,22 @@ export function EmailsTab({ businessId }: EmailsTabProps) {
               {editingEmail && (
                 <>
                   <Box mb={4}>
-                    <Text mb={2} fontWeight="medium">
-                      Nome
-                    </Text>
-                    <Input
-                      placeholder="Ex.: Comercial, Suporte"
-                      value={editingEmail.name}
-                      onChange={(e) =>
-                        setEditingEmail({
-                          ...editingEmail,
-                          name: e.target.value,
-                        } as IBusinessEmail)
-                      }
-                    />
+                    <InputGroup startAddon="Nome">
+                      <Input
+                        placeholder="Ex.: Comercial, Suporte"
+                        value={editingEmail.name}
+                        onChange={(e) =>
+                          setEditingEmail({
+                            ...editingEmail,
+                            name: e.target.value,
+                          } as IBusinessEmail)
+                        }
+                      />
+                    </InputGroup>
                   </Box>
 
                   <Box mb={4}>
-                    <Text mb={2} fontWeight="medium">
-                      E-mail
-                    </Text>
+                    <InputGroup startAddon="E-mail">
                     <Input
                       type="email"
                       placeholder="exemplo@empresa.com"
@@ -564,37 +589,43 @@ export function EmailsTab({ businessId }: EmailsTabProps) {
                       }
                       disabled={(editingEmail as any).verified}
                     />
+                    </InputGroup>
                   </Box>
 
-                  <Box>
-                    <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <input
-                        type="checkbox"
-                        checked={!!editingEmail.primary}
-                        onChange={(e) =>
-                          setEditingEmail({
-                            ...editingEmail,
-                            primary: e.target.checked,
-                          } as IBusinessEmail)
-                        }
-                      />
-                      <Text fontSize="sm">Definir como principal</Text>
-                    </label>
-                  </Box>
+                  <CheckboxCard.Root
+                    checked={!!editingEmail.primary}
+                    onCheckedChange={(details) =>
+                      setEditingEmail({
+                        ...editingEmail,
+                        primary: details.checked,
+                      } as IBusinessEmail)
+                    }
+                    cursor="pointer"
+                  >
+                    <CheckboxCard.HiddenInput />
+                    <CheckboxCard.Control>
+                      <CheckboxCard.Content>
+                        <CheckboxCard.Label>
+                          <Text fontSize="sm">Definir como principal</Text>
+                        </CheckboxCard.Label>
+                      </CheckboxCard.Content>
+                      <CheckboxCard.Indicator />
+                    </CheckboxCard.Control>
+                  </CheckboxCard.Root>
                 </>
               )}
             </Dialog.Body>
             <Dialog.Footer>
               <Dialog.ActionTrigger asChild>
-                <Button variant="outline" mr={3}>
+                <Button variant="outline">
                   Cancelar
                 </Button>
               </Dialog.ActionTrigger>
               <Button
-                colorScheme="blue"
                 onClick={updateEmail}
                 loading={isAddingEmail}
               >
+                <FaPlus />
                 Salvar
               </Button>
             </Dialog.Footer>
@@ -622,21 +653,22 @@ export function EmailsTab({ businessId }: EmailsTabProps) {
                   <strong>{emailToDelete?.email}</strong>?
                 </Text>
               </Box>
-              <Text fontSize="sm" color="gray.600">
+              <Text fontSize="sm" textAlign="center" color="gray.600">
                 Esta ação não pode ser desfeita.
               </Text>
             </Dialog.Body>
             <Dialog.Footer>
               <Dialog.ActionTrigger asChild>
-                <Button variant="outline" mr={3}>
+                <Button variant="outline">
                   Cancelar
                 </Button>
               </Dialog.ActionTrigger>
               <Button
-                colorScheme="red"
+                colorPalette="red"
                 onClick={deleteEmail}
                 loading={isAddingEmail}
               >
+                <FaTrash />
                 Excluir
               </Button>
             </Dialog.Footer>
@@ -684,7 +716,7 @@ export function EmailsTab({ businessId }: EmailsTabProps) {
               >
                 Cancelar
               </Button>
-              <Button colorPalette="blue" onClick={confirmSendVerificationCode} loading={isSendingCode}>
+              <Button onClick={confirmSendVerificationCode} loading={isSendingCode}>
                 Enviar Código
               </Button>
             </Dialog.Footer>
@@ -737,7 +769,7 @@ export function EmailsTab({ businessId }: EmailsTabProps) {
               <Button variant="outline" onClick={closeVerifyModal}>
                 Cancelar
               </Button>
-              <Button colorPalette="green" onClick={confirmEmailVerification} loading={isConfirmingVerification}>
+              <Button onClick={confirmEmailVerification} loading={isConfirmingVerification}>
                 Confirmar Verificação
               </Button>
             </Dialog.Footer>
