@@ -2,7 +2,15 @@
 
 import { GoogleMap } from "@/components/account/GoogleMap";
 import { toaster } from "@/components/ui/toaster";
-import { Box, Button, Dialog, Input, Select, Text, createListCollection } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Dialog,
+  Input,
+  Select,
+  Text,
+  createListCollection,
+} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import { IBusinessAddress } from "./types";
@@ -34,8 +42,11 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // Estados de edição/deleção
-  const [editingAddress, setEditingAddress] = useState<IBusinessAddress | null>(null);
-  const [addressToDelete, setAddressToDelete] = useState<IBusinessAddress | null>(null);
+  const [editingAddress, setEditingAddress] = useState<IBusinessAddress | null>(
+    null
+  );
+  const [addressToDelete, setAddressToDelete] =
+    useState<IBusinessAddress | null>(null);
 
   // Formulários
   const [newAddress, setNewAddress] = useState({
@@ -67,7 +78,9 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
   const fetchAddresses = async () => {
     setIsLoading(true);
     try {
-      const token = await fetch("/api/get-cookies?key=access_token").then((r) => r.json());
+      const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
+        r.json()
+      );
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}management/businesses/${businessId}/addresses`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -77,7 +90,10 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
         setAddresses(data);
       }
     } catch (_e) {
-      toaster.error({ title: "Erro ao carregar endereços", description: "Não foi possível carregar a lista." });
+      toaster.error({
+        title: "Erro ao carregar endereços",
+        description: "Não foi possível carregar a lista.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -89,7 +105,9 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
     if (cleanCep.length !== 8) return null;
 
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const response = await fetch(
+        `https://viacep.com.br/ws/${cleanCep}/json/`
+      );
       const data = await response.json();
       if (data.erro) throw new Error("CEP não encontrado");
       return {
@@ -112,7 +130,9 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
         return null;
       }
       const encoded = encodeURIComponent(address);
-      const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encoded}&key=${apiKey}`);
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encoded}&key=${apiKey}`
+      );
       const data = await res.json();
       if (data.status === "OK" && data.results?.length > 0) {
         const loc = data.results[0].geometry.location;
@@ -143,7 +163,10 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
       }
     } catch (error: any) {
       setCepError(error.message);
-      toaster.error({ title: "Erro ao buscar CEP", description: error.message });
+      toaster.error({
+        title: "Erro ao buscar CEP",
+        description: error.message,
+      });
     } finally {
       setIsLoadingCep(false);
     }
@@ -153,8 +176,18 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
   const handleNextToMapStep = async (isEditing = false) => {
     const current = isEditing && editingAddress ? editingAddress : newAddress;
 
-    if (!current.street || !current.number || !current.district || !current.city || !current.state || !current.cep) {
-      toaster.error({ title: "Campos obrigatórios", description: "Preencha todos os campos antes de continuar." });
+    if (
+      !current.street ||
+      !current.number ||
+      !current.district ||
+      !current.city ||
+      !current.state ||
+      !current.cep
+    ) {
+      toaster.error({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos antes de continuar.",
+      });
       return;
     }
 
@@ -165,17 +198,31 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
       const coords = await getCoordinates(full);
       if (coords) {
         if (isEditing && editingAddress) {
-          setEditingAddress({ ...editingAddress, latitude: coords.latitude, longitude: coords.longitude });
+          setEditingAddress({
+            ...editingAddress,
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          });
           setEditAddressStep(2);
         } else {
-          setNewAddress((prev) => ({ ...prev, latitude: coords.latitude, longitude: coords.longitude }));
+          setNewAddress((prev) => ({
+            ...prev,
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          }));
           setCreateAddressStep(2);
         }
       } else {
-        toaster.error({ title: "Erro ao obter localização", description: "Não foi possível obter as coordenadas." });
+        toaster.error({
+          title: "Erro ao obter localização",
+          description: "Não foi possível obter as coordenadas.",
+        });
       }
     } catch (_e) {
-      toaster.error({ title: "Erro ao obter localização", description: "Tente novamente." });
+      toaster.error({
+        title: "Erro ao obter localização",
+        description: "Tente novamente.",
+      });
     } finally {
       setIsLoadingGeocode(false);
     }
@@ -183,14 +230,26 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
 
   // Criar
   const handleCreate = async () => {
-    if (!newAddress.street.trim() || !newAddress.number.trim() || !newAddress.district.trim() || !newAddress.city.trim() || !newAddress.state.trim() || !newAddress.cep.trim()) {
-      toaster.error({ title: "Campos obrigatórios", description: "Preencha todos os campos obrigatórios." });
+    if (
+      !newAddress.street.trim() ||
+      !newAddress.number.trim() ||
+      !newAddress.district.trim() ||
+      !newAddress.city.trim() ||
+      !newAddress.state.trim() ||
+      !newAddress.cep.trim()
+    ) {
+      toaster.error({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos obrigatórios.",
+      });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const token = await fetch("/api/get-cookies?key=access_token").then((r) => r.json());
+      const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
+        r.json()
+      );
       const body = {
         type: newAddress.type,
         cep: removeMask(newAddress.cep),
@@ -208,13 +267,19 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
         `${process.env.NEXT_PUBLIC_API_URL}management/businesses/${businessId}/addresses`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(body),
         }
       );
 
       if (response.ok) {
-        toaster.success({ title: "Endereço adicionado!", description: "Endereço foi adicionado com sucesso." });
+        toaster.success({
+          title: "Endereço adicionado!",
+          description: "Endereço foi adicionado com sucesso.",
+        });
         closeCreateModal();
         fetchAddresses();
       } else {
@@ -222,7 +287,10 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
         throw new Error(error.message?.[0] || "Erro ao adicionar endereço");
       }
     } catch (error: any) {
-      toaster.error({ title: "Erro ao adicionar endereço", description: error.message || "Não foi possível adicionar." });
+      toaster.error({
+        title: "Erro ao adicionar endereço",
+        description: error.message || "Não foi possível adicionar.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -231,14 +299,26 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
   // Atualizar
   const handleUpdate = async () => {
     if (!editingAddress) return;
-    if (!editingAddress.street.trim() || !editingAddress.number.trim() || !editingAddress.district.trim() || !editingAddress.city.trim() || !editingAddress.state.trim() || !editingAddress.cep.trim()) {
-      toaster.error({ title: "Campos obrigatórios", description: "Preencha todos os campos obrigatórios." });
+    if (
+      !editingAddress.street.trim() ||
+      !editingAddress.number.trim() ||
+      !editingAddress.district.trim() ||
+      !editingAddress.city.trim() ||
+      !editingAddress.state.trim() ||
+      !editingAddress.cep.trim()
+    ) {
+      toaster.error({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos obrigatórios.",
+      });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const token = await fetch("/api/get-cookies?key=access_token").then((r) => r.json());
+      const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
+        r.json()
+      );
       const body = {
         type: editingAddress.type,
         cep: removeMask(editingAddress.cep),
@@ -257,13 +337,19 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
         `${process.env.NEXT_PUBLIC_API_URL}management/businesses/${businessId}/addresses/${editingAddress.id}`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(body),
         }
       );
 
       if (response.ok) {
-        toaster.success({ title: "Endereço atualizado!", description: "Endereço foi atualizado com sucesso." });
+        toaster.success({
+          title: "Endereço atualizado!",
+          description: "Endereço foi atualizado com sucesso.",
+        });
         closeEditModal();
         fetchAddresses();
       } else {
@@ -271,7 +357,10 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
         throw new Error(error.message?.[0] || "Erro ao atualizar endereço");
       }
     } catch (error: any) {
-      toaster.error({ title: "Erro ao atualizar endereço", description: error.message || "Não foi possível atualizar." });
+      toaster.error({
+        title: "Erro ao atualizar endereço",
+        description: error.message || "Não foi possível atualizar.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -282,13 +371,18 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
     if (!addressToDelete) return;
     setIsSubmitting(true);
     try {
-      const token = await fetch("/api/get-cookies?key=access_token").then((r) => r.json());
+      const token = await fetch("/api/get-cookies?key=access_token").then((r) =>
+        r.json()
+      );
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}management/businesses/${businessId}/addresses/${addressToDelete.id}`,
         { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.ok) {
-        toaster.success({ title: "Endereço removido!", description: "Endereço foi removido com sucesso." });
+        toaster.success({
+          title: "Endereço removido!",
+          description: "Endereço foi removido com sucesso.",
+        });
         setIsDeleteModalOpen(false);
         setAddressToDelete(null);
         fetchAddresses();
@@ -297,7 +391,10 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
         throw new Error(error.message?.[0] || "Erro ao remover endereço");
       }
     } catch (error: any) {
-      toaster.error({ title: "Erro ao remover endereço", description: error.message || "Não foi possível remover." });
+      toaster.error({
+        title: "Erro ao remover endereço",
+        description: error.message || "Não foi possível remover.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -367,40 +464,51 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
   };
 
   return (
-    <Box display="flex" flexDir="column" gap={4} w="100%" px={{ base: 4, md: 0 }}>
+    <Box
+      display="flex"
+      flexDir="column"
+      gap={4}
+      w="100%"
+      px={{ base: 4, md: 0 }}
+    >
       <Box display="flex" justifyContent="flex-end" alignItems="center">
-        {
-          addresses.length !== 0 && (
-            <Button onClick={openCreateModal}>
-              <FaPlus />
-              Adicionar Endereço
-            </Button>
-          )
-        }
+        {addresses.length !== 0 && (
+          <Button onClick={openCreateModal}>
+            <FaPlus />
+            Adicionar Endereço
+          </Button>
+        )}
       </Box>
 
       {isLoading ? (
         <Text>Carregando endereços...</Text>
       ) : addresses.length === 0 ? (
         <Box
-            textAlign="center"
-            py={8}
-            border="1px dashed"
-            borderColor="gray.300"
-            borderRadius="md"
+          textAlign="center"
+          py={8}
+          border="1px dashed"
+          borderColor="gray.300"
+          borderRadius="md"
         >
-          <Text color="gray.500">
-            Nenhum endereço cadastrado.
-          </Text>
+          <Text color="gray.500">Nenhum endereço cadastrado.</Text>
           <Text fontSize="sm" color="gray.400" mb={4}>
             Adicione seu primeiro endereço para começar
           </Text>
           <Button onClick={openCreateModal}>
+            <FaPlus />
             Adicionar Primeiro Endereço
           </Button>
         </Box>
       ) : (
-        <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }} gap={4}>
+        <Box
+          display="grid"
+          gridTemplateColumns={{
+            base: "1fr",
+            md: "repeat(2, 1fr)",
+            lg: "repeat(3, 1fr)",
+          }}
+          gap={4}
+        >
           {addresses
             .sort((a, b) => (a.primary && !b.primary ? -1 : 1))
             .map((address) => (
@@ -448,12 +556,19 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
                       {address.complement}
                     </Text>
                   )}
-                  <Text fontSize="sm" color="gray.600">{address.district}</Text>
-                  <Text fontSize="sm" color="gray.600">{address.city} - {address.state}</Text>
-                  <Text fontSize="sm" color="gray.600">CEP: {formatCep(address.cep)}</Text>
+                  <Text fontSize="sm" color="gray.600">
+                    {address.district}
+                  </Text>
+                  <Text fontSize="sm" color="gray.600">
+                    {address.city} - {address.state}
+                  </Text>
+                  <Text fontSize="sm" color="gray.600">
+                    CEP: {formatCep(address.cep)}
+                  </Text>
                   {address.latitude && address.longitude && (
                     <Text fontSize="xs" color="blue.500" mt={1}>
-                      📍 {address.latitude.toFixed(6)}, {address.longitude.toFixed(6)}
+                      📍 {address.latitude.toFixed(6)},{" "}
+                      {address.longitude.toFixed(6)}
                     </Text>
                   )}
                 </Box>
@@ -493,16 +608,25 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
         <Dialog.Positioner>
           <Dialog.Content maxW="700px">
             <Dialog.Header>
-              <Dialog.Title>Adicionar Endereço - Etapa {createAddressStep} de 2</Dialog.Title>
+              <Dialog.Title>
+                Adicionar Endereço - Etapa {createAddressStep} de 2
+              </Dialog.Title>
             </Dialog.Header>
             <Dialog.Body>
               {createAddressStep === 1 ? (
                 <Box display="flex" flexDir="column" gap={4}>
                   <Box>
-                    <Text fontSize="sm" mb={1}>Tipo</Text>
+                    <Text fontSize="sm" mb={1}>
+                      Tipo
+                    </Text>
                     <Select.Root
                       value={[newAddress.type]}
-                      onValueChange={(e) => setNewAddress((p) => ({ ...p, type: e.value[0] as any }))}
+                      onValueChange={(e) =>
+                        setNewAddress((p) => ({
+                          ...p,
+                          type: e.value[0] as any,
+                        }))
+                      }
                       size="sm"
                       collection={addressTypeCollection}
                       positioning={{ sameWidth: true }}
@@ -531,24 +655,37 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
 
                   <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
                     <Box>
-                      <Text fontSize="sm" mb={1}>CEP</Text>
+                      <Text fontSize="sm" mb={1}>
+                        CEP
+                      </Text>
                       <Input
                         placeholder="00000-000"
                         value={formatCep(newAddress.cep)}
-                        onChange={(e) => setNewAddress((p) => ({ ...p, cep: e.target.value }))}
+                        onChange={(e) =>
+                          setNewAddress((p) => ({ ...p, cep: e.target.value }))
+                        }
                         onBlur={(e) => handleCepSearch(e.target.value)}
                         maxLength={9}
                       />
                       {cepError && (
-                        <Text color="red.600" fontSize="xs" mt={1}>{cepError}</Text>
+                        <Text color="red.600" fontSize="xs" mt={1}>
+                          {cepError}
+                        </Text>
                       )}
                     </Box>
                     <Box>
-                      <Text fontSize="sm" mb={1}>Estado</Text>
+                      <Text fontSize="sm" mb={1}>
+                        Estado
+                      </Text>
                       <Input
                         placeholder="SP"
                         value={newAddress.state}
-                        onChange={(e) => setNewAddress((p) => ({ ...p, state: e.target.value.toUpperCase() }))}
+                        onChange={(e) =>
+                          setNewAddress((p) => ({
+                            ...p,
+                            state: e.target.value.toUpperCase(),
+                          }))
+                        }
                         disabled={isLoadingCep}
                         maxLength={2}
                       />
@@ -556,62 +693,101 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
                   </Box>
 
                   <Box>
-                    <Text fontSize="sm" mb={1}>Cidade</Text>
+                    <Text fontSize="sm" mb={1}>
+                      Cidade
+                    </Text>
                     <Input
                       placeholder="São Paulo"
                       value={newAddress.city}
-                      onChange={(e) => setNewAddress((p) => ({ ...p, city: e.target.value }))}
+                      onChange={(e) =>
+                        setNewAddress((p) => ({ ...p, city: e.target.value }))
+                      }
                       disabled={isLoadingCep}
                     />
                   </Box>
 
                   <Box>
-                    <Text fontSize="sm" mb={1}>Bairro</Text>
+                    <Text fontSize="sm" mb={1}>
+                      Bairro
+                    </Text>
                     <Input
                       placeholder="Centro"
                       value={newAddress.district}
-                      onChange={(e) => setNewAddress((p) => ({ ...p, district: e.target.value }))}
+                      onChange={(e) =>
+                        setNewAddress((p) => ({
+                          ...p,
+                          district: e.target.value,
+                        }))
+                      }
                       disabled={isLoadingCep}
                     />
                   </Box>
 
                   <Box display="grid" gridTemplateColumns="3fr 1fr" gap={2}>
                     <Box>
-                      <Text fontSize="sm" mb={1}>Rua</Text>
+                      <Text fontSize="sm" mb={1}>
+                        Rua
+                      </Text>
                       <Input
                         placeholder="Rua Principal"
                         value={newAddress.street}
-                        onChange={(e) => setNewAddress((p) => ({ ...p, street: e.target.value }))}
+                        onChange={(e) =>
+                          setNewAddress((p) => ({
+                            ...p,
+                            street: e.target.value,
+                          }))
+                        }
                         disabled={isLoadingCep}
                       />
                     </Box>
                     <Box>
-                      <Text fontSize="sm" mb={1}>Número</Text>
+                      <Text fontSize="sm" mb={1}>
+                        Número
+                      </Text>
                       <Input
                         placeholder="123"
                         value={newAddress.number}
-                        onChange={(e) => setNewAddress((p) => ({ ...p, number: e.target.value }))}
+                        onChange={(e) =>
+                          setNewAddress((p) => ({
+                            ...p,
+                            number: e.target.value,
+                          }))
+                        }
                         disabled={isLoadingCep}
                       />
                     </Box>
                   </Box>
 
                   <Box>
-                    <Text fontSize="sm" mb={1}>Complemento</Text>
+                    <Text fontSize="sm" mb={1}>
+                      Complemento
+                    </Text>
                     <Input
                       placeholder="Apartamento, bloco, etc."
                       value={newAddress.complement}
-                      onChange={(e) => setNewAddress((p) => ({ ...p, complement: e.target.value }))}
+                      onChange={(e) =>
+                        setNewAddress((p) => ({
+                          ...p,
+                          complement: e.target.value,
+                        }))
+                      }
                       disabled={isLoadingCep}
                     />
                   </Box>
 
                   <Box>
-                    <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <label
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
                       <input
                         type="checkbox"
                         checked={newAddress.primary}
-                        onChange={(e) => setNewAddress((p) => ({ ...p, primary: e.target.checked }))}
+                        onChange={(e) =>
+                          setNewAddress((p) => ({
+                            ...p,
+                            primary: e.target.checked,
+                          }))
+                        }
                       />
                       <Text fontSize="sm">Definir como principal</Text>
                     </label>
@@ -619,14 +795,25 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
                 </Box>
               ) : (
                 <Box display="flex" flexDir="column" gap={4}>
-                  <Text fontSize="sm" fontWeight="semibold">Confirme a Localização no Mapa</Text>
-                  <Text fontSize="xs" color="gray.600">Clique ou arraste o marcador para ajustar a localização exata do endereço</Text>
+                  <Text fontSize="sm" fontWeight="semibold">
+                    Confirme a Localização no Mapa
+                  </Text>
+                  <Text fontSize="xs" color="gray.600">
+                    Clique ou arraste o marcador para ajustar a localização
+                    exata do endereço
+                  </Text>
                   {newAddress.latitude && newAddress.longitude && (
                     <>
                       <GoogleMap
                         latitude={newAddress.latitude}
                         longitude={newAddress.longitude}
-                        onLocationChange={(lat, lng) => setNewAddress((p) => ({ ...p, latitude: lat, longitude: lng }))}
+                        onLocationChange={(lat, lng) =>
+                          setNewAddress((p) => ({
+                            ...p,
+                            latitude: lat,
+                            longitude: lng,
+                          }))
+                        }
                         height="400px"
                       />
                       <Box
@@ -647,7 +834,9 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
                           {newAddress.district} - {newAddress.city}/
                           {newAddress.state}
                         </Text>
-                        <Text fontSize="sm">CEP: {formatCep(newAddress.cep)}</Text>
+                        <Text fontSize="sm">
+                          CEP: {formatCep(newAddress.cep)}
+                        </Text>
                         <Text fontSize="xs" color="gray.500" mt={2}>
                           Coordenadas: {newAddress.latitude.toFixed(6)},{" "}
                           {newAddress.longitude.toFixed(6)}
@@ -661,14 +850,24 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
             <Dialog.Footer>
               {createAddressStep === 1 ? (
                 <>
-                  <Button variant="outline" onClick={closeCreateModal}>Cancelar</Button>
-                  <Button onClick={() => handleNextToMapStep(false)} loading={isLoadingGeocode}>
+                  <Button variant="outline" onClick={closeCreateModal}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={() => handleNextToMapStep(false)}
+                    loading={isLoadingGeocode}
+                  >
                     Continuar
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button variant="outline" onClick={() => setCreateAddressStep(1)}>Voltar</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCreateAddressStep(1)}
+                  >
+                    Voltar
+                  </Button>
                   <Button onClick={handleCreate} loading={isSubmitting}>
                     Salvar Endereço
                   </Button>
@@ -691,186 +890,290 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
         <Dialog.Positioner>
           <Dialog.Content maxW="700px">
             <Dialog.Header>
-              <Dialog.Title>Editar Endereço - Etapa {editAddressStep} de 2</Dialog.Title>
+              <Dialog.Title>
+                Editar Endereço - Etapa {editAddressStep} de 2
+              </Dialog.Title>
             </Dialog.Header>
             <Dialog.Body>
-              {editAddressStep === 1 ? (
-                editingAddress && (
-                  <Box display="flex" flexDir="column" gap={4}>
-                    <Box>
-                      <Text fontSize="sm" mb={1}>Tipo</Text>
-                      <Select.Root
-                        value={[editingAddress.type]}
-                        onValueChange={(e) => setEditingAddress((prev) => prev ? { ...prev, type: e.value[0] as any } : null)}
-                        size="sm"
-                        collection={addressTypeCollection}
-                        positioning={{ sameWidth: true }}
-                      >
-                        <Select.HiddenSelect />
-                        <Select.Control>
-                          <Select.Trigger>
-                            <Select.ValueText placeholder="Selecione o tipo" />
-                            <Select.IndicatorGroup>
-                              <Select.Indicator />
-                            </Select.IndicatorGroup>
-                          </Select.Trigger>
-                        </Select.Control>
-                        <Select.Positioner zIndex={2000}>
-                          <Select.Content>
-                            {addressTypeCollection.items.map((item) => (
-                              <Select.Item key={item.value} item={item}>
-                                <Select.ItemText>{item.label}</Select.ItemText>
-                                <Select.ItemIndicator />
-                              </Select.Item>
-                            ))}
-                          </Select.Content>
-                        </Select.Positioner>
-                      </Select.Root>
-                    </Box>
-
-                    <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+              {editAddressStep === 1
+                ? editingAddress && (
+                    <Box display="flex" flexDir="column" gap={4}>
                       <Box>
-                        <Text fontSize="sm" mb={1}>CEP</Text>
-                        <Input
-                          placeholder="00000-000"
-                          value={formatCep(editingAddress.cep)}
-                          onChange={(e) => setEditingAddress((prev) => prev ? { ...prev, cep: e.target.value } : null)}
-                          onBlur={(e) => handleCepSearch(e.target.value, true)}
-                          maxLength={9}
-                        />
-                        {cepError && (
-                          <Text color="red.600" fontSize="xs" mt={1}>{cepError}</Text>
-                        )}
-                      </Box>
-                      <Box>
-                        <Text fontSize="sm" mb={1}>Estado</Text>
-                        <Input
-                          placeholder="SP"
-                          value={editingAddress.state}
-                          onChange={(e) => setEditingAddress((prev) => prev ? { ...prev, state: e.target.value.toUpperCase() } : null)}
-                          disabled={isLoadingCep}
-                          maxLength={2}
-                        />
-                      </Box>
-                    </Box>
-
-                    <Box>
-                      <Text fontSize="sm" mb={1}>Cidade</Text>
-                      <Input
-                        placeholder="São Paulo"
-                        value={editingAddress.city}
-                        onChange={(e) => setEditingAddress((prev) => prev ? { ...prev, city: e.target.value } : null)}
-                        disabled={isLoadingCep}
-                      />
-                    </Box>
-
-                    <Box>
-                      <Text fontSize="sm" mb={1}>Bairro</Text>
-                      <Input
-                        placeholder="Centro"
-                        value={editingAddress.district}
-                        onChange={(e) => setEditingAddress((prev) => prev ? { ...prev, district: e.target.value } : null)}
-                        disabled={isLoadingCep}
-                      />
-                    </Box>
-
-                    <Box display="grid" gridTemplateColumns="3fr 1fr" gap={2}>
-                      <Box>
-                        <Text fontSize="sm" mb={1}>Rua</Text>
-                        <Input
-                          placeholder="Rua Principal"
-                          value={editingAddress.street}
-                          onChange={(e) => setEditingAddress((prev) => prev ? { ...prev, street: e.target.value } : null)}
-                          disabled={isLoadingCep}
-                        />
-                      </Box>
-                      <Box>
-                        <Text fontSize="sm" mb={1}>Número</Text>
-                        <Input
-                          placeholder="123"
-                          value={editingAddress.number}
-                          onChange={(e) => setEditingAddress((prev) => prev ? { ...prev, number: e.target.value } : null)}
-                          disabled={isLoadingCep}
-                        />
-                      </Box>
-                    </Box>
-
-                    <Box>
-                      <Text fontSize="sm" mb={1}>Complemento</Text>
-                      <Input
-                        placeholder="Apartamento, bloco, etc."
-                        value={editingAddress.complement || ""}
-                        onChange={(e) => setEditingAddress((prev) => prev ? { ...prev, complement: e.target.value } : null)}
-                        disabled={isLoadingCep}
-                      />
-                    </Box>
-
-                    <Box>
-                      <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <input
-                          type="checkbox"
-                          checked={!!editingAddress.primary}
-                          onChange={(e) => setEditingAddress((prev) => prev ? { ...prev, primary: e.target.checked } : null)}
-                        />
-                        <Text fontSize="sm">Definir como principal</Text>
-                      </label>
-                    </Box>
-                  </Box>
-                )
-              ) : (
-                editingAddress && (
-                  <Box display="flex" flexDir="column" gap={4}>
-                    <Text fontSize="sm" fontWeight="semibold">Confirme a Localização no Mapa</Text>
-                    <Text fontSize="xs" color="gray.600">Clique ou arraste o marcador para ajustar a localização exata do endereço</Text>
-                    {typeof editingAddress.latitude === "number" && typeof editingAddress.longitude === "number" && (
-                      <>
-                        <GoogleMap
-                          latitude={editingAddress.latitude}
-                          longitude={editingAddress.longitude}
-                          onLocationChange={(lat, lng) => setEditingAddress((prev) => prev ? { ...prev, latitude: lat, longitude: lng } : null)}
-                          height="400px"
-                        />
-                        <Box
-                          p={3}
-                          borderRadius="md"
-                          border="1px dashed"
-                          borderColor="gray.200"
+                        <Text fontSize="sm" mb={1}>
+                          Tipo
+                        </Text>
+                        <Select.Root
+                          value={[editingAddress.type]}
+                          onValueChange={(e) =>
+                            setEditingAddress((prev) =>
+                              prev ? { ...prev, type: e.value[0] as any } : null
+                            )
+                          }
+                          size="sm"
+                          collection={addressTypeCollection}
+                          positioning={{ sameWidth: true }}
                         >
-                          <Text fontSize="xs" fontWeight="semibold" mb={1}>
-                            Endereço:
+                          <Select.HiddenSelect />
+                          <Select.Control>
+                            <Select.Trigger>
+                              <Select.ValueText placeholder="Selecione o tipo" />
+                              <Select.IndicatorGroup>
+                                <Select.Indicator />
+                              </Select.IndicatorGroup>
+                            </Select.Trigger>
+                          </Select.Control>
+                          <Select.Positioner zIndex={2000}>
+                            <Select.Content>
+                              {addressTypeCollection.items.map((item) => (
+                                <Select.Item key={item.value} item={item}>
+                                  <Select.ItemText>
+                                    {item.label}
+                                  </Select.ItemText>
+                                  <Select.ItemIndicator />
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Positioner>
+                        </Select.Root>
+                      </Box>
+
+                      <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2}>
+                        <Box>
+                          <Text fontSize="sm" mb={1}>
+                            CEP
                           </Text>
-                          <Text fontSize="sm">
-                            {editingAddress.street}, {editingAddress.number}
-                            {editingAddress.complement &&
-                              ` - ${editingAddress.complement}`}
-                          </Text>
-                          <Text fontSize="sm">
-                            {editingAddress.district} - {editingAddress.city}/
-                            {editingAddress.state}
-                          </Text>
-                          <Text fontSize="sm">CEP: {formatCep(editingAddress.cep)}</Text>
-                          <Text fontSize="xs" color="gray.500" mt={2}>
-                            Coordenadas: {editingAddress.latitude.toFixed(6)},{" "}
-                            {editingAddress.longitude.toFixed(6)}
-                          </Text>
+                          <Input
+                            placeholder="00000-000"
+                            value={formatCep(editingAddress.cep)}
+                            onChange={(e) =>
+                              setEditingAddress((prev) =>
+                                prev ? { ...prev, cep: e.target.value } : null
+                              )
+                            }
+                            onBlur={(e) =>
+                              handleCepSearch(e.target.value, true)
+                            }
+                            maxLength={9}
+                          />
+                          {cepError && (
+                            <Text color="red.600" fontSize="xs" mt={1}>
+                              {cepError}
+                            </Text>
+                          )}
                         </Box>
-                      </>
-                    )}
-                  </Box>
-                )
-              )}
+                        <Box>
+                          <Text fontSize="sm" mb={1}>
+                            Estado
+                          </Text>
+                          <Input
+                            placeholder="SP"
+                            value={editingAddress.state}
+                            onChange={(e) =>
+                              setEditingAddress((prev) =>
+                                prev
+                                  ? {
+                                      ...prev,
+                                      state: e.target.value.toUpperCase(),
+                                    }
+                                  : null
+                              )
+                            }
+                            disabled={isLoadingCep}
+                            maxLength={2}
+                          />
+                        </Box>
+                      </Box>
+
+                      <Box>
+                        <Text fontSize="sm" mb={1}>
+                          Cidade
+                        </Text>
+                        <Input
+                          placeholder="São Paulo"
+                          value={editingAddress.city}
+                          onChange={(e) =>
+                            setEditingAddress((prev) =>
+                              prev ? { ...prev, city: e.target.value } : null
+                            )
+                          }
+                          disabled={isLoadingCep}
+                        />
+                      </Box>
+
+                      <Box>
+                        <Text fontSize="sm" mb={1}>
+                          Bairro
+                        </Text>
+                        <Input
+                          placeholder="Centro"
+                          value={editingAddress.district}
+                          onChange={(e) =>
+                            setEditingAddress((prev) =>
+                              prev
+                                ? { ...prev, district: e.target.value }
+                                : null
+                            )
+                          }
+                          disabled={isLoadingCep}
+                        />
+                      </Box>
+
+                      <Box display="grid" gridTemplateColumns="3fr 1fr" gap={2}>
+                        <Box>
+                          <Text fontSize="sm" mb={1}>
+                            Rua
+                          </Text>
+                          <Input
+                            placeholder="Rua Principal"
+                            value={editingAddress.street}
+                            onChange={(e) =>
+                              setEditingAddress((prev) =>
+                                prev
+                                  ? { ...prev, street: e.target.value }
+                                  : null
+                              )
+                            }
+                            disabled={isLoadingCep}
+                          />
+                        </Box>
+                        <Box>
+                          <Text fontSize="sm" mb={1}>
+                            Número
+                          </Text>
+                          <Input
+                            placeholder="123"
+                            value={editingAddress.number}
+                            onChange={(e) =>
+                              setEditingAddress((prev) =>
+                                prev
+                                  ? { ...prev, number: e.target.value }
+                                  : null
+                              )
+                            }
+                            disabled={isLoadingCep}
+                          />
+                        </Box>
+                      </Box>
+
+                      <Box>
+                        <Text fontSize="sm" mb={1}>
+                          Complemento
+                        </Text>
+                        <Input
+                          placeholder="Apartamento, bloco, etc."
+                          value={editingAddress.complement || ""}
+                          onChange={(e) =>
+                            setEditingAddress((prev) =>
+                              prev
+                                ? { ...prev, complement: e.target.value }
+                                : null
+                            )
+                          }
+                          disabled={isLoadingCep}
+                        />
+                      </Box>
+
+                      <Box>
+                        <label
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!!editingAddress.primary}
+                            onChange={(e) =>
+                              setEditingAddress((prev) =>
+                                prev
+                                  ? { ...prev, primary: e.target.checked }
+                                  : null
+                              )
+                            }
+                          />
+                          <Text fontSize="sm">Definir como principal</Text>
+                        </label>
+                      </Box>
+                    </Box>
+                  )
+                : editingAddress && (
+                    <Box display="flex" flexDir="column" gap={4}>
+                      <Text fontSize="sm" fontWeight="semibold">
+                        Confirme a Localização no Mapa
+                      </Text>
+                      <Text fontSize="xs" color="gray.600">
+                        Clique ou arraste o marcador para ajustar a localização
+                        exata do endereço
+                      </Text>
+                      {typeof editingAddress.latitude === "number" &&
+                        typeof editingAddress.longitude === "number" && (
+                          <>
+                            <GoogleMap
+                              latitude={editingAddress.latitude}
+                              longitude={editingAddress.longitude}
+                              onLocationChange={(lat, lng) =>
+                                setEditingAddress((prev) =>
+                                  prev
+                                    ? { ...prev, latitude: lat, longitude: lng }
+                                    : null
+                                )
+                              }
+                              height="400px"
+                            />
+                            <Box
+                              p={3}
+                              borderRadius="md"
+                              border="1px dashed"
+                              borderColor="gray.200"
+                            >
+                              <Text fontSize="xs" fontWeight="semibold" mb={1}>
+                                Endereço:
+                              </Text>
+                              <Text fontSize="sm">
+                                {editingAddress.street}, {editingAddress.number}
+                                {editingAddress.complement &&
+                                  ` - ${editingAddress.complement}`}
+                              </Text>
+                              <Text fontSize="sm">
+                                {editingAddress.district} -{" "}
+                                {editingAddress.city}/{editingAddress.state}
+                              </Text>
+                              <Text fontSize="sm">
+                                CEP: {formatCep(editingAddress.cep)}
+                              </Text>
+                              <Text fontSize="xs" color="gray.500" mt={2}>
+                                Coordenadas:{" "}
+                                {editingAddress.latitude.toFixed(6)},{" "}
+                                {editingAddress.longitude.toFixed(6)}
+                              </Text>
+                            </Box>
+                          </>
+                        )}
+                    </Box>
+                  )}
             </Dialog.Body>
             <Dialog.Footer>
               {editAddressStep === 1 ? (
                 <>
-                  <Button variant="outline" onClick={closeEditModal}>Cancelar</Button>
-                  <Button onClick={() => handleNextToMapStep(true)} loading={isLoadingGeocode}>
+                  <Button variant="outline" onClick={closeEditModal}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={() => handleNextToMapStep(true)}
+                    loading={isLoadingGeocode}
+                  >
                     Continuar
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button variant="outline" onClick={() => setEditAddressStep(1)}>Voltar</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditAddressStep(1)}
+                  >
+                    Voltar
+                  </Button>
                   <Button onClick={handleUpdate} loading={isSubmitting}>
                     Salvar Alterações
                   </Button>
@@ -898,15 +1201,35 @@ export function AddressesTab({ businessId }: AddressesTabProps) {
             <Dialog.Body>
               <Text>Tem certeza que deseja remover este endereço?</Text>
               {addressToDelete && (
-                <Box mt={3} p={3} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200">
-                  <Text fontSize="sm" fontWeight="bold">{addressToDelete.street}, {addressToDelete.number}</Text>
-                  <Text fontSize="sm" color="gray.600">{addressToDelete.district} - {addressToDelete.city}/{addressToDelete.state}</Text>
+                <Box
+                  mt={3}
+                  p={3}
+                  bg="gray.50"
+                  borderRadius="md"
+                  border="1px solid"
+                  borderColor="gray.200"
+                >
+                  <Text fontSize="sm" fontWeight="bold">
+                    {addressToDelete.street}, {addressToDelete.number}
+                  </Text>
+                  <Text fontSize="sm" color="gray.600">
+                    {addressToDelete.district} - {addressToDelete.city}/
+                    {addressToDelete.state}
+                  </Text>
                 </Box>
               )}
             </Dialog.Body>
             <Dialog.Footer>
-              <Button variant="outline" onClick={closeDeleteModal}>Cancelar</Button>
-              <Button colorPalette="red" onClick={handleDelete} loading={isSubmitting}>Remover</Button>
+              <Button variant="outline" onClick={closeDeleteModal}>
+                Cancelar
+              </Button>
+              <Button
+                colorPalette="red"
+                onClick={handleDelete}
+                loading={isSubmitting}
+              >
+                Remover
+              </Button>
             </Dialog.Footer>
             <Dialog.CloseTrigger />
           </Dialog.Content>

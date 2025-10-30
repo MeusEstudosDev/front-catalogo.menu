@@ -5,14 +5,15 @@ const publicPaths = ["/", "/register"];
 const publicGlobalPaths = ["/privacy", "/terms", "/404", "/confirm-invite"];
 const privatePaths = ["/dashboard", "/account", "/settings"];
 const managementPaths = [
-    "/manage-system",
-    "/manage-system/businesses",
-    "/manage-system/businesses/create",
-    "/manage-system/businesses/edit",
-    "/manage-system/users",
-    "/manage-system/whatsapp",
-    "/manage-system/notifications",
-  ];
+  "/manage-system",
+  "/manage-system/businesses",
+  "/manage-system/businesses/create",
+  "/manage-system/businesses/edit",
+  "/manage-system/users",
+  "/manage-system/whatsapp",
+  "/manage-system/notifications",
+  "/manage-system/plans",
+];
 
 function decodeJwt(token: string): any | null {
   try {
@@ -148,7 +149,12 @@ export default async function proxy(request: NextRequest) {
   const isPublicGlobalRoute = publicGlobalPaths.includes(pathname);
   const isPrivateRoute = privatePaths.includes(pathname);
   const isManagementRoute = managementPaths.includes(pathname);
-  const knownRoutes = [...publicPaths, ...publicGlobalPaths, ...privatePaths, ...managementPaths];
+  const knownRoutes = [
+    ...publicPaths,
+    ...publicGlobalPaths,
+    ...privatePaths,
+    ...managementPaths,
+  ];
   const decodedToken = token ? decodeJwt(token.value) : null;
 
   if (!knownRoutes.includes(pathname)) {

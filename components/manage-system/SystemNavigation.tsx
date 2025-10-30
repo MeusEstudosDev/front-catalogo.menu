@@ -22,11 +22,19 @@ export function SystemNavigation() {
             colorScheme={isActive("/manage-system") ? "gray" : undefined}
             color={isActive("/manage-system") ? "gray.200" : "gray.800"}
             bg={isActive("/manage-system") ? "gray.950" : "gray.100"}
-            _dark={{ bg: isActive("/manage-system") ? "gray.800" : "gray.950", color: "gray.200" }}
-            _hover={{ bg: isActive("/manage-system") ? "gray.800" : "gray.200", _dark: { bg: isActive("/manage-system") ? "gray.900" : "gray.900" } }}
+            _dark={{
+              bg: isActive("/manage-system") ? "gray.800" : "gray.950",
+              color: "gray.200",
+            }}
+            _hover={{
+              bg: isActive("/manage-system") ? "gray.800" : "gray.200",
+              _dark: {
+                bg: isActive("/manage-system") ? "gray.900" : "gray.900",
+              },
+            }}
             px={6}
             borderRadius={0}
-            shadow={ isActive("/manage-system") ? "xl" : undefined }
+            shadow={isActive("/manage-system") ? "xl" : undefined}
             onClick={() => router.push("/manage-system")}
           >
             <MdDashboard />
@@ -34,14 +42,54 @@ export function SystemNavigation() {
           </Button>
           <Button
             variant="ghost"
-            colorScheme={(isActive("/manage-system/businesses") || isActive("/manage-system/businesses/edit")) ? "gray" : undefined}
-            color={(isActive("/manage-system/businesses") || isActive("/manage-system/businesses/edit")) ? "gray.200" : "gray.800"}
-            bg={(isActive("/manage-system/businesses") || isActive("/manage-system/businesses/edit")) ? "gray.950" : "gray.100"}
-            _dark={{ bg: (isActive("/manage-system/businesses") || isActive("/manage-system/businesses/edit")) ? "gray.800" : "gray.950", color: "gray.200" }}
-            _hover={{ bg: (isActive("/manage-system/businesses") || isActive("/manage-system/businesses/edit")) ? "gray.800" : "gray.200", _dark: { bg: (isActive("/manage-system/businesses") || isActive("/manage-system/businesses/edit")) ? "gray.900" : "gray.900" } }}
+            colorScheme={
+              isActive("/manage-system/businesses") ||
+              isActive("/manage-system/businesses/edit")
+                ? "gray"
+                : undefined
+            }
+            color={
+              isActive("/manage-system/businesses") ||
+              isActive("/manage-system/businesses/edit")
+                ? "gray.200"
+                : "gray.800"
+            }
+            bg={
+              isActive("/manage-system/businesses") ||
+              isActive("/manage-system/businesses/edit")
+                ? "gray.950"
+                : "gray.100"
+            }
+            _dark={{
+              bg:
+                isActive("/manage-system/businesses") ||
+                isActive("/manage-system/businesses/edit")
+                  ? "gray.800"
+                  : "gray.950",
+              color: "gray.200",
+            }}
+            _hover={{
+              bg:
+                isActive("/manage-system/businesses") ||
+                isActive("/manage-system/businesses/edit")
+                  ? "gray.800"
+                  : "gray.200",
+              _dark: {
+                bg:
+                  isActive("/manage-system/businesses") ||
+                  isActive("/manage-system/businesses/edit")
+                    ? "gray.900"
+                    : "gray.900",
+              },
+            }}
             px={6}
             borderRadius={0}
-            shadow={ (isActive("/manage-system/businesses") || isActive("/manage-system/businesses/edit")) ? "xl" : undefined }
+            shadow={
+              isActive("/manage-system/businesses") ||
+              isActive("/manage-system/businesses/edit")
+                ? "xl"
+                : undefined
+            }
             onClick={() => router.push("/manage-system/businesses")}
           >
             <IoBusiness />
@@ -52,11 +100,19 @@ export function SystemNavigation() {
             colorScheme={isActive("/manage-system/users") ? "gray" : undefined}
             color={isActive("/manage-system/users") ? "gray.200" : "gray.800"}
             bg={isActive("/manage-system/users") ? "gray.950" : "gray.100"}
-            _dark={{ bg: isActive("/manage-system/users") ? "gray.800" : "gray.950", color: "gray.200" }}
-            _hover={{ bg: isActive("/manage-system/users") ? "gray.800" : "gray.200", _dark: { bg: isActive("/manage-system/users") ? "gray.900" : "gray.900" } }}
+            _dark={{
+              bg: isActive("/manage-system/users") ? "gray.800" : "gray.950",
+              color: "gray.200",
+            }}
+            _hover={{
+              bg: isActive("/manage-system/users") ? "gray.800" : "gray.200",
+              _dark: {
+                bg: isActive("/manage-system/users") ? "gray.900" : "gray.900",
+              },
+            }}
             px={6}
             borderRadius={0}
-            shadow={ isActive("/manage-system/users") ? "xl" : undefined }
+            shadow={isActive("/manage-system/users") ? "xl" : undefined}
             onClick={() => router.push("/manage-system/users")}
           >
             <FaUsers />
@@ -64,14 +120,34 @@ export function SystemNavigation() {
           </Button>
           <Button
             variant="ghost"
-            colorScheme={isActive("/manage-system/notifications") ? "gray" : undefined}
-            color={isActive("/manage-system/notifications") ? "gray.200" : "gray.800"}
-            bg={isActive("/manage-system/notifications") ? "gray.950" : "gray.100"}
-            _dark={{ bg: isActive("/manage-system/notifications") ? "gray.800" : "gray.950", color: "gray.200" }}
-            _hover={{ bg: isActive("/manage-system/notifications") ? "gray.800" : "gray.200", _dark: { bg: isActive("/manage-system/notifications") ? "gray.900" : "gray.900" } }}
+            colorScheme={
+              isActive("/manage-system/notifications") ? "gray" : undefined
+            }
+            color={
+              isActive("/manage-system/notifications") ? "gray.200" : "gray.800"
+            }
+            bg={
+              isActive("/manage-system/notifications") ? "gray.950" : "gray.100"
+            }
+            _dark={{
+              bg: isActive("/manage-system/notifications")
+                ? "gray.800"
+                : "gray.950",
+              color: "gray.200",
+            }}
+            _hover={{
+              bg: isActive("/manage-system/notifications")
+                ? "gray.800"
+                : "gray.200",
+              _dark: {
+                bg: isActive("/manage-system/notifications")
+                  ? "gray.900"
+                  : "gray.900",
+              },
+            }}
             px={6}
             borderRadius={0}
-            shadow={ isActive("/manage-system/notifications") ? "xl" : undefined }
+            shadow={isActive("/manage-system/notifications") ? "xl" : undefined}
             onClick={() => router.push("/manage-system/notifications")}
           >
             <IoMdNotificationsOutline />
@@ -79,14 +155,28 @@ export function SystemNavigation() {
           </Button>
           <Button
             variant="ghost"
-            colorScheme={isActive("/manage-system/whatsapp") ? "gray" : undefined}
-            color={isActive("/manage-system/whatsapp") ? "gray.200" : "gray.800"}
+            colorScheme={
+              isActive("/manage-system/whatsapp") ? "gray" : undefined
+            }
+            color={
+              isActive("/manage-system/whatsapp") ? "gray.200" : "gray.800"
+            }
             bg={isActive("/manage-system/whatsapp") ? "gray.950" : "gray.100"}
-            _dark={{ bg: isActive("/manage-system/whatsapp") ? "gray.800" : "gray.950", color: "gray.200" }}
-            _hover={{ bg: isActive("/manage-system/whatsapp") ? "gray.800" : "gray.200", _dark: { bg: isActive("/manage-system/whatsapp") ? "gray.900" : "gray.900" } }}
+            _dark={{
+              bg: isActive("/manage-system/whatsapp") ? "gray.800" : "gray.950",
+              color: "gray.200",
+            }}
+            _hover={{
+              bg: isActive("/manage-system/whatsapp") ? "gray.800" : "gray.200",
+              _dark: {
+                bg: isActive("/manage-system/whatsapp")
+                  ? "gray.900"
+                  : "gray.900",
+              },
+            }}
             px={6}
             borderRadius={0}
-            shadow={ isActive("/manage-system/whatsapp") ? "xl" : undefined }
+            shadow={isActive("/manage-system/whatsapp") ? "xl" : undefined}
             onClick={() => router.push("/manage-system/whatsapp")}
           >
             <FaWhatsapp />
@@ -94,21 +184,34 @@ export function SystemNavigation() {
           </Button>
           <Button
             variant="ghost"
-            colorScheme={isActive("/manage-system/whatsapp") ? "gray" : undefined}
-            color={isActive("/manage-system/whatsapp") ? "gray.200" : "gray.800"}
-            bg={isActive("/manage-system/whatsapp") ? "gray.950" : "gray.100"}
-            _dark={{ bg: isActive("/manage-system/whatsapp") ? "gray.800" : "gray.950", color: "gray.200" }}
-            _hover={{ bg: isActive("/manage-system/whatsapp") ? "gray.800" : "gray.200", _dark: { bg: isActive("/manage-system/whatsapp") ? "gray.900" : "gray.900" } }}
+            colorScheme={isActive("/manage-system/plans") ? "gray" : undefined}
+            color={isActive("/manage-system/plans") ? "gray.200" : "gray.800"}
+            bg={isActive("/manage-system/plans") ? "gray.950" : "gray.100"}
+            _dark={{
+              bg: isActive("/manage-system/plans") ? "gray.800" : "gray.950",
+              color: "gray.200",
+            }}
+            _hover={{
+              bg: isActive("/manage-system/plans") ? "gray.800" : "gray.200",
+              _dark: {
+                bg: isActive("/manage-system/plans") ? "gray.900" : "gray.900",
+              },
+            }}
             px={6}
             borderRadius={0}
-            shadow={ isActive("/manage-system/whatsapp") ? "xl" : undefined }
-            onClick={() => router.push("/manage-system/whatsapp")}
+            shadow={isActive("/manage-system/plans") ? "xl" : undefined}
+            onClick={() => router.push("/manage-system/plans")}
           >
             <FaFileInvoiceDollar />
             Planos
           </Button>
         </Flex>
-        <Box h="0.5" w="100%" bgColor="gray.300" _dark={{ bg: "gray.800" }}></Box>
+        <Box
+          h="0.5"
+          w="100%"
+          bgColor="gray.300"
+          _dark={{ bg: "gray.800" }}
+        ></Box>
       </Box>
     </Container>
   );
