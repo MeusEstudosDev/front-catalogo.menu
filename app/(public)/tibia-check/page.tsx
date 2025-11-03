@@ -196,11 +196,11 @@ export default function TibiaCheckPage() {
                     </Text>
                   ) : result.hasGuild ? (
                     <Text color="green.600" fontSize="sm">
-                      ✅ Faz parte de uma guild
+                      ✅ Faz parte de uma guild ou tem house
                     </Text>
                   ) : (
                     <Text color="orange.600" fontSize="sm">
-                      ⚠️ Não faz parte de uma guild
+                      ⚠️ Não faz parte de uma guild e não tem house
                     </Text>
                   )}
                 </Box>

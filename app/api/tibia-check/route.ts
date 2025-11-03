@@ -31,7 +31,8 @@ export async function POST(request: NextRequest) {
     const bodyText = $("body").html() || "";
     const hasGuild =
       bodyText.includes("Guild Membership:") ||
-      bodyText.includes("Guild&nbsp;Membership:");
+      bodyText.includes("Guild&nbsp;Membership:") ||
+      bodyText.includes("House:");
 
     return NextResponse.json({
       name: name.trim(),
