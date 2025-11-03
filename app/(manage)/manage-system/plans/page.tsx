@@ -487,7 +487,7 @@ function PlansPageContent() {
             >
               <Table.Root variant="outline" size="sm">
                 <Table.Header>
-                  <Table.Row bg="gray.50" _dark={{ bg: "gray.800" }}>
+                  <Table.Row bg="gray.50" _dark={{ bg: "gray.900" }}>
                     <Table.ColumnHeader>Código</Table.ColumnHeader>
                     <Table.ColumnHeader>Nome</Table.ColumnHeader>
                     <Table.ColumnHeader>Preço Mensal</Table.ColumnHeader>
@@ -504,10 +504,11 @@ function PlansPageContent() {
                   {plans.map((plan) => (
                     <Table.Row
                       key={plan.id}
-                      _hover={{ bg: "gray.50", _dark: { bg: "gray.800" } }}
+                      _hover={{ bg: "gray.50", _dark: { bg: "gray.900" } }}
                       cursor="pointer"
                       onClick={() => openDetailsModal(plan)}
-                    >
+                      _dark={{ bg: "gray.700" }}
+                      >
                       <Table.Cell fontWeight="medium">#{plan.code}</Table.Cell>
                       <Table.Cell>{plan.name}</Table.Cell>
                       <Table.Cell>
@@ -536,6 +537,7 @@ function PlansPageContent() {
                           <Button
                             size="xs"
                             variant="ghost"
+                            colorPalette="blue"
                             onClick={() => openEditModal(plan)}
                             title="Editar"
                           >
@@ -574,7 +576,7 @@ function PlansPageContent() {
                 borderTop="1px"
                 borderColor="gray.200"
               >
-                <Text fontSize="sm" color="gray.600">
+                <Text fontSize="sm" color="gray.500">
                   Mostrando {(pageNumber - 1) * pageSize + 1} a{" "}
                   {Math.min(pageNumber * pageSize, total)} de {total} planos
                 </Text>

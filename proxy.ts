@@ -2,7 +2,15 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 const publicPaths = ["/", "/register"];
-const publicGlobalPaths = ["/privacy", "/terms", "/404", "/confirm-invite"];
+const publicGlobalPaths = [
+  "/privacy",
+  "/terms",
+  "/404",
+  "/confirm-invite",
+  "/public",
+  "/public/plans",
+  "/tibia-check",
+];
 const privatePaths = ["/dashboard", "/account", "/settings"];
 const managementPaths = [
   "/manage-system",
