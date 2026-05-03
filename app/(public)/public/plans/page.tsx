@@ -3,6 +3,7 @@
 import { useColorModeValue } from "@/components/ui/color-mode";
 import { toaster } from "@/components/ui/toaster";
 import { Badge, Box, Button, Card, Flex, Grid, GridItem, Heading, List, Span, Spinner, Stack, Text } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { FiAlertOctagon } from "react-icons/fi";
 import { IoMdArrowDropright } from "react-icons/io";
@@ -31,6 +32,7 @@ interface Plan {
 }
 
 const PlansPage: React.FC = () => {
+  const router = useRouter();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
@@ -81,6 +83,25 @@ const PlansPage: React.FC = () => {
   const getMostPopularPlan = () => {
     // Lógica para destacar plano mais popular (pode ser baseado em código, nome, etc.)
     return plans.length > 1 ? plans[1]?.id : plans[0]?.id;
+  };
+
+  const handleSelectPlan = (plan: Plan) => {
+    const queryParams = new URLSearchParams({
+      planId: plan.id,
+      planName: plan.name,
+      billingCycle: billingCycle,
+      priceMonthly: plan.price_monthly.toString(),
+      priceYearly: plan.price_yearly.toString(),
+      discountPix: plan.discount_pix.toString(),
+      discountYearly: plan.discount_yearly.toString(),
+      currency: plan.currency,
+      trialDays: plan.trial_days.toString(),
+      maxUsers: plan.max_users?.toString() || "",
+      maxProducts: plan.max_products?.toString() || "",
+      maxOrders: plan.max_orders?.toString() || "",
+    });
+
+    router.push(`/plans/pay?${queryParams.toString()}`);
   };
 
   if (isLoading) {
@@ -216,6 +237,7 @@ const PlansPage: React.FC = () => {
                         variant={isMostPopular ? "solid" : "outline"}
                         size="lg"
                         w="full"
+                        onClick={() => handleSelectPlan(plan)}
                       >
                         Escolher Plano
                       </Button>

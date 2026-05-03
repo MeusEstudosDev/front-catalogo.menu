@@ -11,7 +11,13 @@ const publicGlobalPaths = [
   "/public/plans",
   "/tibia-check",
 ];
-const privatePaths = ["/dashboard", "/account", "/settings"];
+const privatePaths = [
+  "/dashboard",
+  "/account",
+  "/settings",
+  "/plans/pay",
+  "/plans/pay/checkout"
+];
 const managementPaths = [
   "/manage-system",
   "/manage-system/businesses",
