@@ -16,7 +16,7 @@ const privatePaths = [
   "/account",
   "/settings",
   "/plans/pay",
-  "/plans/pay/checkout"
+  "/plans/pay/checkout",
 ];
 const managementPaths = [
   "/manage-system",
@@ -49,7 +49,7 @@ async function tokenIsValid(
   token: string | undefined,
   refreshToken: string | undefined,
   profileCookie: string | undefined,
-  request: NextRequest
+  request: NextRequest,
 ) {
   if (!token) return null;
   const decodedToken = decodeJwt(token);
@@ -88,7 +88,7 @@ async function tokenIsValid(
           Authorization: `Bearer ${refreshToken}`,
         },
         body: JSON.stringify({ refresh_token: refreshToken }),
-      }
+      },
     );
 
     if (!refreshResponse.ok) {
@@ -130,7 +130,7 @@ async function tokenIsValid(
           `${process.env.NEXT_PUBLIC_API_URL}profile`,
           {
             headers: { Authorization: `Bearer ${newAccessToken}` },
-          }
+          },
         );
         if (profileRes.ok) {
           const profileData = await profileRes.json();
@@ -201,7 +201,7 @@ export default async function proxy(request: NextRequest) {
       token?.value,
       refreshToken?.value,
       profile?.value,
-      request
+      request,
     );
     if (validationResult) return validationResult;
   }
@@ -215,7 +215,7 @@ export default async function proxy(request: NextRequest) {
       token?.value,
       refreshToken?.value,
       profile?.value,
-      request
+      request,
     );
     if (validationResult) return validationResult;
   }

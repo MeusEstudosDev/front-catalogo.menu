@@ -1,8 +1,18 @@
 "use client";
 
 import { toaster } from "@/components/ui/toaster";
-import { Box, Button, Container, Heading, Input, Stack, Text, VStack } from "@chakra-ui/react";
-import { useState } from "react";
+import {
+  Box,
+  Button,
+  Container,
+  Heading,
+  HStack,
+  Input,
+  Stack,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 
 interface CharacterResult {
   name: string;
@@ -11,16 +21,108 @@ interface CharacterResult {
   error?: boolean;
 }
 
-export default function TibiaCheckPage() {
+const STORAGE_KEY = "tibia-check-2-char-list";
+
+export default function TibiaCheck2Page() {
   const [inputValue, setInputValue] = useState("");
+  const [savedCharacters, setSavedCharacters] = useState<string[]>([]);
+  const [showSavedCharacters, setShowSavedCharacters] = useState(true);
   const [results, setResults] = useState<CharacterResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!inputValue.trim()) {
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const storedCharacters = window.localStorage.getItem(STORAGE_KEY);
+
+    if (!storedCharacters) {
+      return;
+    }
+
+    try {
+      const parsedCharacters = JSON.parse(storedCharacters) as string[];
+      if (Array.isArray(parsedCharacters)) {
+        setSavedCharacters(
+          parsedCharacters
+            .map((name) => name.trim())
+            .filter((name): name is string => name.length > 0),
+        );
+      }
+    } catch {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(savedCharacters));
+  }, [savedCharacters]);
+
+  const normalizeNames = (value: string) =>
+    value
+      .split(",")
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0);
+
+  const addCharacters = () => {
+    const namesToAdd = normalizeNames(inputValue);
+
+    if (namesToAdd.length === 0) {
       toaster.create({
-        title: "Campo vazio",
-        description: "Por favor, digite pelo menos um nome de personagem.",
+        title: "Nenhum nome válido",
+        description: "Digite um ou mais nomes separados por vírgula.",
+        type: "error",
+        duration: 3000,
+      });
+      return;
+    }
+
+    setSavedCharacters((currentCharacters) => {
+      const uniqueCharacters = new Set(
+        currentCharacters.map((name) => name.toLowerCase()),
+      );
+      const mergedCharacters = [...currentCharacters];
+
+      namesToAdd.forEach((name) => {
+        const normalizedName = name.trim();
+        const key = normalizedName.toLowerCase();
+
+        if (!uniqueCharacters.has(key)) {
+          uniqueCharacters.add(key);
+          mergedCharacters.push(normalizedName);
+        }
+      });
+
+      return mergedCharacters;
+    });
+
+    setInputValue("");
+    setShowSavedCharacters(true);
+
+    toaster.create({
+      title: "Chars adicionados",
+      description: `${namesToAdd.length} char(ns) enviado(s) para a lista.`,
+      type: "success",
+      duration: 3000,
+    });
+  };
+
+  const removeCharacter = (characterToRemove: string) => {
+    setSavedCharacters((currentCharacters) =>
+      currentCharacters.filter((name) => name !== characterToRemove),
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (savedCharacters.length === 0) {
+      toaster.create({
+        title: "Lista vazia",
+        description: "Adicione pelo menos um char na lista antes de pesquisar.",
         type: "error",
         duration: 3000,
       });
@@ -30,35 +132,16 @@ export default function TibiaCheckPage() {
     setIsLoading(true);
     setResults([]);
 
-    // Separar nomes por vírgula e limpar espaços
-    const names = inputValue
-      .split(",")
-      .map((name) => name.trim())
-      .filter((name) => name.length > 0);
-
-    if (names.length === 0) {
-      toaster.create({
-        title: "Nenhum nome válido",
-        description: "Por favor, digite nomes válidos separados por vírgula.",
-        type: "error",
-        duration: 3000,
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    // Inicializar resultados com status de loading
-    const initialResults: CharacterResult[] = names.map((name) => ({
+    const initialResults: CharacterResult[] = savedCharacters.map((name) => ({
       name,
       hasGuild: false,
       loading: true,
     }));
     setResults(initialResults);
 
-    // Processar cada nome
-    const promises = names.map(async (name, index) => {
+    const promises = savedCharacters.map(async (name, index) => {
       try {
-        const response = await fetch("/api/tibia-check", {
+        const response = await fetch("/api/tibia-check-2", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -72,7 +155,6 @@ export default function TibiaCheckPage() {
 
         const data = await response.json();
 
-        // Atualizar resultado específico
         setResults((prev) => {
           const newResults = [...prev];
           newResults[index] = {
@@ -85,7 +167,6 @@ export default function TibiaCheckPage() {
 
         return data;
       } catch (error) {
-        // Atualizar com erro
         setResults((prev) => {
           const newResults = [...prev];
           newResults[index] = {
@@ -107,7 +188,7 @@ export default function TibiaCheckPage() {
 
     toaster.create({
       title: "Verificação concluída",
-      description: `${names.length} personagem(ns) verificado(s).`,
+      description: `${savedCharacters.length} personagem(ns) verificado(s).`,
       type: "success",
       duration: 3000,
     });
@@ -115,42 +196,117 @@ export default function TibiaCheckPage() {
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      handleSubmit();
+      addCharacters();
     }
   };
 
   return (
     <Container maxW="container.md" py={10}>
       <VStack gap={6} align="stretch">
-        <Box textAlign="center">
-          <Heading size="2xl" mb={2}>
-            Verificador de Guild do Tibia
-          </Heading>
-          <Text color="gray.600">
-            Digite os nomes dos personagens separados por vírgula
-          </Text>
-        </Box>
-
         <Stack gap={4}>
-          <Input
-            placeholder="Ex: Sorin Emperor, Player Name, Another Player"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            size="lg"
-            disabled={isLoading}
-          />
-
-          <Button
-            colorScheme="blue"
-            size="lg"
-            onClick={handleSubmit}
-            loading={isLoading}
-            loadingText="Verificando..."
-            disabled={isLoading}
+          <HStack
+            justify="space-between"
+            align="center"
+            flexWrap="wrap"
+            gap={3}
           >
-            Verificar
-          </Button>
+            <Box>
+              <Heading size="2xl" mb={2}>
+                Verificador de Guild do Tibia
+              </Heading>
+              <Text color="gray.600">
+                Adicione os chars separados por vírgula e consulte a lista salva
+              </Text>
+            </Box>
+
+            <Button
+              variant="outline"
+              onClick={() => setShowSavedCharacters((value) => !value)}
+            >
+              {showSavedCharacters
+                ? "Ocultar lista de chares"
+                : "Ver lista de chares"}
+            </Button>
+          </HStack>
+
+          {showSavedCharacters && (
+            <>
+              <Box display="flex" gap={4}>
+                <Input
+                  placeholder="Ex: Sorin Emperor, Player Name, Another Player"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  size="lg"
+                  disabled={isLoading}
+                />
+
+                <Button
+                  colorScheme="blue"
+                  size="lg"
+                  onClick={addCharacters}
+                  disabled={isLoading}
+                >
+                  Adicionar à lista
+                </Button>
+              </Box>
+
+              <Box
+                borderWidth={1}
+                borderRadius="md"
+                p={4}
+                bg="gray.50"
+                _dark={{ bg: "gray.800" }}
+              >
+                {savedCharacters.length === 0 ? (
+                  <Text color="gray.500" fontSize="sm">
+                    Nenhum char salvo ainda.
+                  </Text>
+                ) : (
+                  <HStack gap={2} flexWrap="wrap">
+                    {savedCharacters.map((name) => (
+                      <HStack
+                        key={name}
+                        gap={2}
+                        px={3}
+                        py={1.5}
+                        borderRadius="full"
+                        bg="blue.100"
+                        _dark={{ bg: "blue.900" }}
+                      >
+                        <Text fontSize="sm" fontWeight="medium">
+                          {name}
+                        </Text>
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          aria-label={`Remover ${name}`}
+                          onClick={() => removeCharacter(name)}
+                        >
+                          x
+                        </Button>
+                      </HStack>
+                    ))}
+                  </HStack>
+                )}
+              </Box>
+            </>
+          )}
+
+          <Stack gap={3}>
+            <HStack gap={3} flexWrap="wrap">
+              <Button
+                colorScheme="green"
+                size="lg"
+                onClick={handleSubmit}
+                loading={isLoading}
+                loadingText="Pesquisando..."
+                disabled={isLoading}
+              >
+                Pesquisar chars salvos
+              </Button>
+            </HStack>
+          </Stack>
         </Stack>
 
         {results.length > 0 && (
@@ -177,10 +333,10 @@ export default function TibiaCheckPage() {
                     result.loading
                       ? "gray.300"
                       : result.error
-                      ? "red.300"
-                      : result.hasGuild
-                      ? "green.300"
-                      : "orange.300"
+                        ? "red.300"
+                        : result.hasGuild
+                          ? "green.300"
+                          : "orange.300"
                   }
                 >
                   <Text fontWeight="bold" fontSize="lg" mb={1}>
